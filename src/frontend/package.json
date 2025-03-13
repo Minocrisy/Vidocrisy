@@ -11,9 +11,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@chakra-ui/react": "^2.8.0",
     "@chakra-ui/icons": "^2.0.19",
     "@chakra-ui/menu": "^2.1.15",
+    "@chakra-ui/react": "^2.8.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "axios": "^1.4.0",
