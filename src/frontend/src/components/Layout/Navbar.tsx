@@ -7,11 +7,9 @@ import {
   HStack
 } from '@chakra-ui/react'
 import { Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/menu'
-import { useColorMode } from '@chakra-ui/system'
 import { FiSettings, FiUser, FiHelpCircle } from 'react-icons/fi'
 
 const Navbar = () => {
-  const { colorMode, toggleColorMode } = useColorMode()
 
   return (
     <Box 

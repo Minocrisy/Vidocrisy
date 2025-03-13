@@ -13,7 +13,6 @@ import {
   InputLeftElement,
   Select,
   HStack,
-  VStack,
   Image,
   Badge,
   Divider
@@ -25,7 +24,6 @@ import {
   FiPlay,
   FiEdit,
   FiDownload,
-  FiTrash2,
   FiMoreVertical,
   FiPlus,
   FiFolder

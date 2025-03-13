@@ -12,24 +12,17 @@ import {
   HStack,
   VStack,
   Divider,
-  Tooltip,
   Image,
   SimpleGrid
 } from '@chakra-ui/react'
 import { Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/menu'
 import {
   FiPlus,
-  FiTrash2,
-  FiCopy,
-  FiChevronUp,
-  FiChevronDown,
   FiChevronRight,
-  FiSettings,
   FiSave,
   FiDownload,
   FiUpload,
   FiPlay,
-  FiPause,
   FiSkipBack,
   FiSkipForward
 } from 'react-icons/fi'
