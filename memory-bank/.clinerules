@@ -1,0 +1,62 @@
+# Cline Rules for VideoGen
+
+## Project Patterns
+- **Phased Development**: The project follows a phased approach with clear milestones
+- **Component-Based Architecture**: UI is built with modular, reusable components
+- **Adapter Pattern**: External services are integrated through standardized adapters
+- **Provider Pattern**: State management uses React Context providers
+- **Command Pattern**: Video editing operations are implemented as commands
+- **Factory Pattern**: Video processing and transitions use factory patterns
+
+## User Preferences
+- **Visual Aesthetic**: User prefers a futuristic, high-tech look with blue-tinted monochromatic color scheme
+- **Brand Identity**: Black and white logo with angular design elements
+- **Avatar Style**: User has two AI avatars (Mike and Mira) with a consistent futuristic style
+- **Video Types**: User wants to create talking head videos and short movie-style videos (around 3 minutes)
+- **Cost Sensitivity**: User prefers to minimize costs and avoid additional subscriptions
+- **Existing Tools**: User has Canva Pro account that can be leveraged for editing
+- **API Credits**: User has $20 credits each for Hedra and RunwayML
+
+## Implementation Paths
+- **MVP First**: Focus on core functionality before adding advanced features
+- **Hedra Integration**: Primary focus on Hedra API for video generation
+- **Local Development**: Use GitHub Codespaces for development to minimize costs
+- **Static Hosting**: Deploy frontend as static site initially
+- **Serverless Backend**: Use serverless functions for backend operations
+- **Local Storage**: Start with local storage before moving to cloud solutions
+- **FFmpeg Processing**: Use FFmpeg for video manipulation and splicing
+
+## Known Challenges
+- **Resource Constraints**: GitHub Codespaces has limitations for video processing
+- **API Usage Limits**: Need to carefully manage API calls to stay within credits
+- **Video Storage**: Video files can be large and require efficient storage strategy
+- **Processing Performance**: Video processing is CPU and memory intensive
+- **UI Complexity**: Balancing feature richness with usability for video editing
+- **Cross-Browser Compatibility**: Video playback capabilities vary by browser
+
+## Tool Usage
+- **React + Chakra UI**: For building the frontend interface
+- **Node.js + Express**: For backend API and service integration
+- **FFmpeg**: For video processing and manipulation
+- **Vite**: For frontend build and development
+- **TypeScript**: For type safety across the codebase
+- **Git/GitHub**: For version control and collaboration
+- **Axios**: For API communication
+- **Video.js**: For video playback
+- **React DnD**: For drag-and-drop video arrangement
+
+## Decision Evolution
+- **Frontend Framework**: Chose React.js for its component model and ecosystem
+- **UI Library**: Selected Chakra UI for its customizability and theming support
+- **State Management**: Opted for React Context API over Redux for simplicity
+- **Video Processing**: Decided on FFmpeg for its comprehensive capabilities
+- **Storage Strategy**: Starting with local storage, with plans to evaluate cloud options
+- **Development Environment**: Chose GitHub Codespaces for consistency and accessibility
+- **Design Direction**: Adopted futuristic, high-tech aesthetic based on user's existing assets
+
+## Notes
+- The user has specific visual preferences that should be maintained throughout the project
+- Cost-effectiveness is a priority for all implementation decisions
+- The system should be designed for extensibility to incorporate additional AI services
+- The user's existing assets (avatars and logo) provide a strong visual direction
+- The project should balance feature richness with development complexity for the MVP
