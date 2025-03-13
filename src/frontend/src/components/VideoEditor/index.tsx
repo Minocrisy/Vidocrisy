@@ -57,6 +57,7 @@ import VideoPlayer from '../VideoPlayer';
 import videoService from '../../services/video.service';
 import editorService from '../../services/editor.service';
 import { VideoMetadata } from '../../services/video.service';
+import ExportDialog from './ExportDialog';
 
 // Define types
 interface TimelineItem {
@@ -258,6 +259,7 @@ const VideoEditor = () => {
   const [outputDescription, setOutputDescription] = useState('');
   const [outputCategory, setOutputCategory] = useState('');
   const [outputTags, setOutputTags] = useState('');
+  const [showExportDialog, setShowExportDialog] = useState(false);
   
   // Fetch videos and transitions on component mount
   useEffect(() => {
@@ -616,6 +618,18 @@ const VideoEditor = () => {
     }
   };
   
+  // Handle export completion
+  const handleExportComplete = (newVideoId: string) => {
+    setCurrentVideo(newVideoId);
+    toast({
+      title: 'Export complete',
+      description: 'Your video has been exported successfully',
+      status: 'success',
+      duration: 5000,
+      isClosable: true
+    });
+  };
+  
   return (
     <DndProvider backend={HTML5Backend}>
       <Box>
@@ -778,8 +792,8 @@ const VideoEditor = () => {
                     <Button
                       leftIcon={<FiDownload />}
                       colorScheme="brand"
-                      isDisabled={timelineItems.length === 0}
-                      onClick={combineVideos}
+                      isDisabled={!currentVideo}
+                      onClick={() => setShowExportDialog(true)}
                     >
                       Export Video
                     </Button>
@@ -954,9 +968,18 @@ const VideoEditor = () => {
             </Card>
           </GridItem>
         </Grid>
+        
+        {/* Export Dialog */}
+        <ExportDialog
+          isOpen={showExportDialog}
+          onClose={() => setShowExportDialog(false)}
+          videoId={currentVideo}
+          onExportComplete={handleExportComplete}
+        />
       </Box>
     </DndProvider>
   );
 };
 
 export default VideoEditor;
+

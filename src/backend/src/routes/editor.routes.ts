@@ -20,6 +20,9 @@ router.post('/brand', editorController.addBranding);
 // Apply transition between videos
 router.post('/transition', editorController.applyTransition);
 
+// Export video with specific format, resolution, and quality settings
+router.post('/export', editorController.exportVideo);
+
 // Get job status
 router.get('/job/:jobId', editorController.getJobStatus);
 

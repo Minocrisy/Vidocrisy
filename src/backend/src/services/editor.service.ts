@@ -67,6 +67,23 @@ export interface BrandingOptions {
   };
 }
 
+export interface ExportOptions {
+  videoId: string;
+  format: 'mp4' | 'webm' | 'mov';
+  resolution?: {
+    width: number;
+    height: number;
+  };
+  quality?: 'low' | 'medium' | 'high';
+  fps?: number;
+  output: {
+    filename: string;
+    description?: string;
+    category?: string;
+    tags?: string[];
+  };
+}
+
 // Define editor service
 const editorService = {
   /**
@@ -647,6 +664,130 @@ const editorService = {
       return metadata.id;
     } catch (error) {
       console.error('Error applying transition:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Export video with specific format, resolution, and quality settings
+   */
+  exportVideo: async (options: ExportOptions): Promise<string> => {
+    try {
+      // Create a new job
+      const job = await editorService.createJob();
+      
+      // Update job status
+      await editorService.updateJobStatus(job.id, {
+        status: 'processing',
+        progress: 0
+      });
+      
+      // Get video metadata
+      const video = await storageService.getVideoMetadata(options.videoId);
+      
+      if (!video) {
+        throw new Error('Video not found');
+      }
+      
+      // Create output path
+      const extension = options.format === 'webm' ? 'webm' : options.format === 'mov' ? 'mov' : 'mp4';
+      const outputFilename = options.output.filename || `export-${Date.now()}.${extension}`;
+      const outputPath = path.join(env.videosDir, 'edited', outputFilename);
+      
+      // Build FFmpeg command based on export options
+      let args: string[] = ['-i', video.path];
+      
+      // Add video codec based on format
+      if (options.format === 'webm') {
+        args.push('-c:v', 'libvpx-vp9');
+      } else if (options.format === 'mov' || options.format === 'mp4') {
+        args.push('-c:v', 'libx264');
+      }
+      
+      // Add audio codec based on format
+      if (options.format === 'webm') {
+        args.push('-c:a', 'libopus');
+      } else if (options.format === 'mov' || options.format === 'mp4') {
+        args.push('-c:a', 'aac');
+      }
+      
+      // Add quality settings
+      if (options.quality) {
+        let crf: number;
+        let audioBitrate: string;
+        
+        switch (options.quality) {
+          case 'low':
+            crf = options.format === 'webm' ? 35 : 28;
+            audioBitrate = '96k';
+            break;
+          case 'medium':
+            crf = options.format === 'webm' ? 30 : 23;
+            audioBitrate = '128k';
+            break;
+          case 'high':
+            crf = options.format === 'webm' ? 24 : 18;
+            audioBitrate = '192k';
+            break;
+          default:
+            crf = options.format === 'webm' ? 30 : 23; // Default to medium
+            audioBitrate = '128k';
+        }
+        
+        args.push('-crf', crf.toString());
+        args.push('-b:a', audioBitrate);
+      }
+      
+      // Add resolution settings
+      if (options.resolution) {
+        args.push('-vf', `scale=${options.resolution.width}:${options.resolution.height}`);
+      }
+      
+      // Add framerate settings
+      if (options.fps) {
+        args.push('-r', options.fps.toString());
+      }
+      
+      // Add output path
+      args.push(outputPath);
+      
+      // Update job with command
+      await editorService.updateJobStatus(job.id, {
+        command: `ffmpeg ${args.join(' ')}`
+      });
+      
+      // Execute FFmpeg command
+      await editorService.executeFFmpeg(args, job.id);
+      
+      // Save video metadata
+      const stats = fs.statSync(outputPath);
+      
+      const metadata: VideoMetadata = {
+        id: `edited-${Date.now()}-${Math.round(Math.random() * 1E9)}`,
+        filename: outputFilename,
+        path: outputPath,
+        url: `/uploads/videos/edited/${outputFilename}`,
+        size: stats.size,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        category: options.output.category,
+        tags: options.output.tags ? [...options.output.tags, 'exported', options.format] : ['exported', options.format],
+        source: 'edited',
+        description: options.output.description || `Exported video (${options.format})`
+      };
+      
+      await storageService.saveMetadata(metadata);
+      
+      // Update job status
+      await editorService.updateJobStatus(job.id, {
+        status: 'completed',
+        progress: 100,
+        outputPath
+      });
+      
+      return metadata.id;
+    } catch (error) {
+      console.error('Error exporting video:', error);
       throw error;
     }
   }

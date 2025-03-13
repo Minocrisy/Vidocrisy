@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import editorService, { ConcatOptions, TrimOptions, BrandingOptions } from '../services/editor.service.js';
+import editorService, { ConcatOptions, TrimOptions, BrandingOptions, ExportOptions } from '../services/editor.service.js';
 
 // Define editor controller
 const editorController = {
@@ -190,6 +190,88 @@ const editorController = {
       console.error('Error applying transition:', error);
       res.status(500).json({ 
         error: 'Failed to apply transition',
+        details: error.message || 'Unknown error'
+      });
+    }
+  },
+  
+  /**
+   * Export video with specific format, resolution, and quality settings
+   */
+  exportVideo: async (req: Request, res: Response) => {
+    try {
+      const { videoId, format, resolution, quality, fps, output } = req.body;
+      
+      // Validate required fields
+      if (!videoId) {
+        return res.status(400).json({ error: 'Video ID is required' });
+      }
+      
+      if (!format || !['mp4', 'webm', 'mov'].includes(format)) {
+        return res.status(400).json({ error: 'Valid format is required (mp4, webm, or mov)' });
+      }
+      
+      if (quality && !['low', 'medium', 'high'].includes(quality)) {
+        return res.status(400).json({ error: 'Valid quality is required (low, medium, or high)' });
+      }
+      
+      if (!output || !output.filename) {
+        return res.status(400).json({ error: 'Output filename is required' });
+      }
+      
+      // Parse resolution if provided
+      let parsedResolution;
+      if (resolution) {
+        if (!resolution.width || !resolution.height) {
+          return res.status(400).json({ error: 'Resolution must include width and height' });
+        }
+        
+        parsedResolution = {
+          width: parseInt(resolution.width.toString(), 10),
+          height: parseInt(resolution.height.toString(), 10)
+        };
+        
+        if (isNaN(parsedResolution.width) || isNaN(parsedResolution.height)) {
+          return res.status(400).json({ error: 'Resolution width and height must be numbers' });
+        }
+      }
+      
+      // Parse fps if provided
+      let parsedFps;
+      if (fps) {
+        parsedFps = parseInt(fps.toString(), 10);
+        
+        if (isNaN(parsedFps)) {
+          return res.status(400).json({ error: 'FPS must be a number' });
+        }
+      }
+      
+      // Create options
+      const options: ExportOptions = {
+        videoId,
+        format: format as 'mp4' | 'webm' | 'mov',
+        resolution: parsedResolution,
+        quality: quality as 'low' | 'medium' | 'high' | undefined,
+        fps: parsedFps,
+        output: {
+          filename: output.filename,
+          description: output.description,
+          category: output.category,
+          tags: output.tags
+        }
+      };
+      
+      // Export video
+      const newVideoId = await editorService.exportVideo(options);
+      
+      res.status(200).json({
+        message: 'Video exported successfully',
+        videoId: newVideoId
+      });
+    } catch (error: any) {
+      console.error('Error exporting video:', error);
+      res.status(500).json({ 
+        error: 'Failed to export video',
         details: error.message || 'Unknown error'
       });
     }
