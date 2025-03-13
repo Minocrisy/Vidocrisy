@@ -9,6 +9,9 @@ import { dirname, join } from 'path';
 // Routes
 import apiRoutes from './routes/index.js';
 
+// Services
+import storageService from './services/storage.service.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -48,6 +51,15 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     }
   });
 });
+
+// Initialize storage service
+storageService.init()
+  .then(() => {
+    console.log('Storage service initialized');
+  })
+  .catch(err => {
+    console.error('Failed to initialize storage service:', err);
+  });
 
 // Start server
 app.listen(PORT, () => {

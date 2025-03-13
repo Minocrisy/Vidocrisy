@@ -76,6 +76,11 @@ const api = {
       },
     });
   },
+  
+  // Get the base URL of the API
+  getBaseUrl: (): string => {
+    return apiClient.defaults.baseURL || '';
+  }
 };
 
 export default api;

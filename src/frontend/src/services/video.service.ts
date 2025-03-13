@@ -1,18 +1,20 @@
 import api from './api';
 
-export interface Video {
+export interface VideoMetadata {
   id: string;
-  title: string;
-  description?: string;
-  duration: number;
-  createdAt: string;
-  updatedAt: string;
-  source: 'hedra' | 'runway' | 'upload' | 'edited';
-  thumbnailUrl: string;
-  videoUrl: string;
+  filename: string;
+  originalName?: string;
+  path?: string;
+  url: string;
+  thumbnailUrl?: string;
   size: number;
+  duration?: number;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  category?: string;
   tags?: string[];
-  folderId?: string;
+  source: 'hedra' | 'runway' | 'upload' | 'edited';
+  description?: string;
 }
 
 export interface VideoFolder {
@@ -52,8 +54,45 @@ const videoService = {
   /**
    * Get all videos
    */
-  getAllVideos: async () => {
-    const response = await api.get<{ videos: Video[] }>('/videos');
+  getAllVideos: async (options?: {
+    source?: 'hedra' | 'runway' | 'upload' | 'edited';
+    category?: string;
+    tags?: string[];
+    limit?: number;
+    offset?: number;
+  }) => {
+    let url = '/videos';
+    
+    // Add query parameters if options are provided
+    if (options) {
+      const params = new URLSearchParams();
+      
+      if (options.source) {
+        params.append('source', options.source);
+      }
+      
+      if (options.category) {
+        params.append('category', options.category);
+      }
+      
+      if (options.tags && options.tags.length > 0) {
+        params.append('tags', options.tags.join(','));
+      }
+      
+      if (options.limit) {
+        params.append('limit', options.limit.toString());
+      }
+      
+      if (options.offset) {
+        params.append('offset', options.offset.toString());
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+    }
+    
+    const response = await api.get<{ videos: VideoMetadata[] }>(url);
     return response.data.videos || [];
   },
 
@@ -61,19 +100,49 @@ const videoService = {
    * Get a single video by ID
    */
   getVideo: async (id: string) => {
-    const response = await api.get<Video>(`/videos/${id}`);
-    return response.data;
+    const response = await api.get<{ video: VideoMetadata }>(`/videos/${id}`);
+    return response.data.video;
   },
 
   /**
    * Upload a video file
    */
-  uploadVideo: async (file: File, metadata: { title: string; description?: string; tags?: string[] }, onProgress?: (percentage: number) => void) => {
+  uploadVideo: async (file: File, metadata: { category?: string; description?: string; tags?: string[] }, onProgress?: (percentage: number) => void) => {
     const formData = new FormData();
     formData.append('video', file);
-    formData.append('metadata', JSON.stringify(metadata));
     
-    const response = await api.upload<{ video: Video }>('/videos/upload', formData, onProgress);
+    if (metadata.category) {
+      formData.append('category', metadata.category);
+    }
+    
+    if (metadata.description) {
+      formData.append('description', metadata.description);
+    }
+    
+    if (metadata.tags && metadata.tags.length > 0) {
+      formData.append('tags', metadata.tags.join(','));
+    }
+    
+    const response = await api.upload<{ video: VideoMetadata }>('/videos/upload', formData, onProgress);
+    return response.data.video;
+  },
+
+  /**
+   * Save a generated video from Hedra or RunwayML
+   */
+  saveGeneratedVideo: async (videoUrl: string, metadata: { 
+    source: 'hedra' | 'runway';
+    category?: string;
+    description?: string;
+    tags?: string[];
+  }) => {
+    const response = await api.post<{ video: VideoMetadata }>('/videos/save-generated', {
+      videoUrl,
+      source: metadata.source,
+      category: metadata.category,
+      description: metadata.description,
+      tags: metadata.tags ? metadata.tags.join(',') : undefined
+    });
     return response.data.video;
   },
 
@@ -81,8 +150,31 @@ const videoService = {
    * Delete a video
    */
   deleteVideo: async (id: string) => {
-    const response = await api.delete(`/videos/${id}`);
+    const response = await api.delete<{ message: string }>(`/videos/${id}`);
     return response.data;
+  },
+
+  /**
+   * Update video metadata
+   */
+  updateVideo: async (id: string, updates: {
+    category?: string;
+    description?: string;
+    tags?: string[];
+  }) => {
+    const response = await api.put<{ video: VideoMetadata }>(`/videos/${id}`, {
+      category: updates.category,
+      description: updates.description,
+      tags: updates.tags ? updates.tags.join(',') : undefined
+    });
+    return response.data.video;
+  },
+
+  /**
+   * Get video stream URL
+   */
+  getVideoStreamUrl: (id: string) => {
+    return `${api.getBaseUrl()}/videos/${id}/stream`;
   },
 
   /**
@@ -97,32 +189,22 @@ const videoService = {
    * Add branding to a video
    */
   addBranding: async (id: string, branding: BrandingParams) => {
-    const response = await api.post<{ video: Video }>(`/videos/${id}/brand`, branding);
+    const response = await api.post<{ video: VideoMetadata }>(`/videos/${id}/brand`, branding);
     return response.data.video;
   },
 
   /**
-   * Get all folders
+   * Get videos by category
    */
-  getFolders: async () => {
-    const response = await api.get<{ folders: VideoFolder[] }>('/videos/folders');
-    return response.data.folders || [];
+  getVideosByCategory: async (category: string) => {
+    return videoService.getAllVideos({ category });
   },
 
   /**
-   * Create a new folder
+   * Get videos by source
    */
-  createFolder: async (name: string, description?: string) => {
-    const response = await api.post<{ folder: VideoFolder }>('/videos/folders', { name, description });
-    return response.data.folder;
-  },
-
-  /**
-   * Get videos in a folder
-   */
-  getVideosInFolder: async (folderId: string) => {
-    const response = await api.get<{ videos: Video[] }>(`/videos/folders/${folderId}`);
-    return response.data.videos || [];
+  getVideosBySource: async (source: 'hedra' | 'runway' | 'upload' | 'edited') => {
+    return videoService.getAllVideos({ source });
   }
 };
 

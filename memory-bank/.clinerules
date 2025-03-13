@@ -28,11 +28,12 @@
 
 ## Known Challenges
 - **Resource Constraints**: GitHub Codespaces has limitations for video processing
-- **API Usage Limits**: Need to carefully manage API calls to stay within credits
+- **API Usage Limits**: Need to carefully manage API calls to stay within credits (implemented caching)
 - **Video Storage**: Video files can be large and require efficient storage strategy
 - **Processing Performance**: Video processing is CPU and memory intensive
 - **UI Complexity**: Balancing feature richness with usability for video editing
 - **Cross-Browser Compatibility**: Video playback capabilities vary by browser
+- **API Error Handling**: Need robust error handling for external API calls
 
 ## Tool Usage
 - **React + Chakra UI**: For building the frontend interface
@@ -44,6 +45,8 @@
 - **Axios**: For API communication
 - **Video.js**: For video playback
 - **React DnD**: For drag-and-drop video arrangement
+- **Multer**: For file uploads handling
+- **Form-Data**: For multipart form data handling in API requests
 
 ## Decision Evolution
 - **Frontend Framework**: Chose React.js for its component model and ecosystem
@@ -53,6 +56,23 @@
 - **Storage Strategy**: Starting with local storage, with plans to evaluate cloud options
 - **Development Environment**: Chose GitHub Codespaces for consistency and accessibility
 - **Design Direction**: Adopted futuristic, high-tech aesthetic based on user's existing assets
+- **API Integration**: Implemented caching to minimize API calls and reduce costs
+- **Error Handling**: Added comprehensive error handling for API calls with user feedback
+
+## Implementation Patterns
+- **API Caching**: Implement caching for API responses to minimize external calls
+- **Form Validation**: Validate form inputs before making API calls
+- **Progress Tracking**: Show progress indicators for long-running operations
+- **Error Feedback**: Provide clear error messages to users when operations fail
+- **Responsive Design**: Ensure UI works well on different screen sizes
+- **Component Composition**: Build complex UI from smaller, reusable components
+- **Async Operations**: Use async/await for cleaner asynchronous code
+- **Type Safety**: Use TypeScript interfaces for API request/response types
+- **Metadata Management**: Store comprehensive metadata for all videos
+- **File Organization**: Organize files by source and type in the storage system
+- **Streaming Support**: Implement proper video streaming with range requests
+- **Custom Controls**: Create custom video player controls for better UX
+- **Stateful Components**: Use React state to manage component behavior
 
 ## Notes
 - The user has specific visual preferences that should be maintained throughout the project
@@ -60,3 +80,4 @@
 - The system should be designed for extensibility to incorporate additional AI services
 - The user's existing assets (avatars and logo) provide a strong visual direction
 - The project should balance feature richness with development complexity for the MVP
+- API usage should be optimized to stay within the user's existing credits
