@@ -19,8 +19,8 @@
 2. ✅ Implement the video generation form
 3. ✅ Set up the video storage system
 4. ✅ Create the video player component
-5. Implement basic video editing capabilities
-6. Add branding templates
+5. ✅ Implement basic video editing capabilities
+6. ✅ Add branding templates
 
 ## Active Decisions
 - **Frontend Framework**: React.js with Chakra UI for a modern, customizable interface
@@ -55,6 +55,10 @@
 - Created a comprehensive video storage system with metadata management
 - Implemented a feature-rich video player component with custom controls
 - Added video streaming capabilities with support for seeking and quality control
+- Developed a video editor service with FFmpeg integration
+- Implemented video concatenation, trimming, and transition effects
+- Added branding capabilities with intro/outro and lower thirds
+- Created a job system for tracking video processing progress
 
 ## Notes
 - The user has existing avatars (Mike and Mira) with a futuristic, high-tech aesthetic

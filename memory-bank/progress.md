@@ -3,12 +3,15 @@
 ## Project Status
 - Planning phase completed
 - Phase 1 (Foundation) implementation completed (100%)
+- Phase 2 (Core Video Features) implementation completed (100%)
 - Basic UI framework implemented
 - Frontend and backend structure set up
 - Hedra API integration completed
 - Video generation form implemented
 - Video storage system implemented
 - Video player component created
+- Video editing capabilities implemented
+- Branding templates added
 
 ## What Works
 - Project planning and documentation
@@ -30,6 +33,11 @@
 - Video streaming with support for seeking and quality control
 - Custom video player with playback controls
 - Video organization by category and source
+- Video editing with FFmpeg integration
+- Video concatenation and trimming
+- Transition effects (fade, dissolve, wipe, zoom)
+- Branding templates (intro, outro, lower thirds)
+- Job system for tracking video processing progress
 
 ## What's Left to Build
 
@@ -48,15 +56,15 @@
 - [x] Avatar selection (Mike and Mira)
 - [x] Video storage and organization
 - [x] Video player with custom controls
-- [ ] Branding templates
-- [ ] FFmpeg integration for video processing
+- [x] Branding templates
+- [x] FFmpeg integration for video processing
 
 ### Phase 3: Editing & Splicing (Weeks 5-6)
-- [ ] Video splicing functionality
-- [ ] Transition library
+- [x] Video splicing functionality
+- [x] Transition library
 - [ ] UI for video arrangement
-- [ ] Automated branding application
-- [ ] Basic effects matching user's visual style
+- [x] Automated branding application
+- [x] Basic effects matching user's visual style
 
 ### Phase 4: Refinement & Testing (Weeks 7-8)
 - [ ] UI/UX polish
@@ -70,8 +78,8 @@
 |-----------|-------------|--------|
 | Project Planning | Week 0 | ✅ Completed |
 | Foundation Implementation | End of Week 2 | ✅ Completed (100%) |
-| Core Video Features | End of Week 4 | 🔄 In Progress (40%) |
-| Editing & Splicing | End of Week 6 | 🔄 Not Started |
+| Core Video Features | End of Week 4 | ✅ Completed (100%) |
+| Editing & Splicing | End of Week 6 | 🔄 In Progress (60%) |
 | MVP Completion | End of Week 8 | 🔄 Not Started |
 
 ## Known Issues

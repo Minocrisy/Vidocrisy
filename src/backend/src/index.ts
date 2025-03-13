@@ -11,6 +11,7 @@ import apiRoutes from './routes/index.js';
 
 // Services
 import storageService from './services/storage.service.js';
+import editorService from './services/editor.service.js';
 
 // Load environment variables
 dotenv.config();
@@ -52,14 +53,14 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-// Initialize storage service
-storageService.init()
-  .then(() => {
-    console.log('Storage service initialized');
-  })
-  .catch(err => {
-    console.error('Failed to initialize storage service:', err);
-  });
+// Initialize services
+Promise.all([
+  storageService.init().then(() => console.log('Storage service initialized')),
+  editorService.init().then(() => console.log('Editor service initialized'))
+])
+.catch(err => {
+  console.error('Failed to initialize services:', err);
+});
 
 // Start server
 app.listen(PORT, () => {

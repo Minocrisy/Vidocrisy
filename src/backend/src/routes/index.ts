@@ -2,6 +2,7 @@ import express from 'express';
 import videoRoutes from './video.routes.js';
 import hedraRoutes from './hedra.routes.js';
 import runwayRoutes from './runway.routes.js';
+import editorRoutes from './editor.routes.js';
 
 const router = express.Router();
 
@@ -14,5 +15,6 @@ router.get('/', (req, res) => {
 router.use('/videos', videoRoutes);
 router.use('/hedra', hedraRoutes);
 router.use('/runway', runwayRoutes);
+router.use('/editor', editorRoutes);
 
 export default router;

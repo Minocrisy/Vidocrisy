@@ -73,6 +73,11 @@
 - **Streaming Support**: Implement proper video streaming with range requests
 - **Custom Controls**: Create custom video player controls for better UX
 - **Stateful Components**: Use React state to manage component behavior
+- **Job System**: Use a job system for tracking long-running operations
+- **Command Pattern**: Use FFmpeg commands for video processing
+- **Transition Effects**: Implement standard video transitions (fade, dissolve, wipe, zoom)
+- **Branding Templates**: Create reusable branding templates for videos
+- **Progress Polling**: Poll for job status to update progress indicators
 
 ## Notes
 - The user has specific visual preferences that should be maintained throughout the project
