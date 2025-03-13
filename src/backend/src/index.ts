@@ -33,6 +33,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Static files
 app.use('/uploads', express.static(join(__dirname, '../uploads')));
+app.use('/assets', express.static(join(__dirname, '../../public/assets')));
+app.use(express.static(join(__dirname, '../../public')));
+app.use(express.static(join(__dirname, '../..')));
 
 // API routes
 app.use('/api', apiRoutes);

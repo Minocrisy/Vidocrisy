@@ -43,6 +43,10 @@
 - Video preview in editor
 - Transition management between clips
 - Output customization options
+- Export options with multiple formats (MP4, WebM, QuickTime)
+- Quality presets (low, medium, high) for exports
+- Custom resolution and FPS settings
+- Export metadata customization
 
 ## What's Left to Build
 
@@ -74,7 +78,7 @@
 ### Phase 4: Refinement & Testing (Weeks 7-8)
 - [ ] UI/UX polish
 - [ ] Performance optimization
-- [ ] Export options
+- [x] Export options
 - [ ] Comprehensive testing
 
 ## Current Milestones
@@ -85,7 +89,7 @@
 | Foundation Implementation | End of Week 2 | ✅ Completed (100%) |
 | Core Video Features | End of Week 4 | ✅ Completed (100%) |
 | Editing & Splicing | End of Week 6 | ✅ Completed (100%) |
-| MVP Completion | End of Week 8 | 🔄 In Progress (20%) |
+| MVP Completion | End of Week 8 | 🔄 In Progress (40%) |
 
 ## Known Issues
 - Image path handling in the public directory requires careful attention

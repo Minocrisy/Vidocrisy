@@ -205,13 +205,13 @@ const hedraService = {
       {
         id: 'mike',
         name: 'Mike',
-        imageUrl: '/assets/images/Mike_Avatar.jpeg',
+        imageUrl: '/Mike_Avatar.jpeg',
         description: 'Professional male avatar with a friendly demeanor'
       },
       {
         id: 'mira',
         name: 'Mira',
-        imageUrl: '/assets/images/MIra_Avatar.jpeg',
+        imageUrl: '/MIra_Avatar.jpeg',
         description: 'Professional female avatar with a confident presence'
       }
     ];

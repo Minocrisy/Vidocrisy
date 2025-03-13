@@ -24,7 +24,7 @@ const Navbar = () => {
       <Flex justify="space-between" align="center">
         <HStack spacing={4}>
           <Image 
-            src="/assets/images/Minocrisy_Banner.png" 
+            src="/Minocrisy_Banner.png" 
             alt="Vidocrisy" 
             height="40px"
           />
