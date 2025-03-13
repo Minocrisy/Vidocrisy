@@ -59,6 +59,10 @@
 - Implemented video concatenation, trimming, and transition effects
 - Added branding capabilities with intro/outro and lower thirds
 - Created a job system for tracking video processing progress
+- Developed a drag-and-drop UI for video arrangement
+- Implemented timeline-based video editing interface
+- Added support for adding transitions between video clips
+- Created output options for customizing video metadata
 
 ## Notes
 - The user has existing avatars (Mike and Mira) with a futuristic, high-tech aesthetic

@@ -78,6 +78,11 @@
 - **Transition Effects**: Implement standard video transitions (fade, dissolve, wipe, zoom)
 - **Branding Templates**: Create reusable branding templates for videos
 - **Progress Polling**: Poll for job status to update progress indicators
+- **Drag and Drop**: Use React DnD for drag-and-drop functionality
+- **Timeline Interface**: Implement timeline-based editing for video arrangement
+- **Preview Integration**: Integrate video preview with editing interface
+- **Modular Components**: Break down complex UI into modular, reusable components
+- **Responsive Feedback**: Provide immediate visual feedback for user actions
 
 ## Notes
 - The user has specific visual preferences that should be maintained throughout the project

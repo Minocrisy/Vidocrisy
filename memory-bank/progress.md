@@ -38,6 +38,11 @@
 - Transition effects (fade, dissolve, wipe, zoom)
 - Branding templates (intro, outro, lower thirds)
 - Job system for tracking video processing progress
+- Drag-and-drop UI for video arrangement
+- Timeline-based video editing interface
+- Video preview in editor
+- Transition management between clips
+- Output customization options
 
 ## What's Left to Build
 
@@ -62,7 +67,7 @@
 ### Phase 3: Editing & Splicing (Weeks 5-6)
 - [x] Video splicing functionality
 - [x] Transition library
-- [ ] UI for video arrangement
+- [x] UI for video arrangement
 - [x] Automated branding application
 - [x] Basic effects matching user's visual style
 
@@ -79,8 +84,8 @@
 | Project Planning | Week 0 | ✅ Completed |
 | Foundation Implementation | End of Week 2 | ✅ Completed (100%) |
 | Core Video Features | End of Week 4 | ✅ Completed (100%) |
-| Editing & Splicing | End of Week 6 | 🔄 In Progress (60%) |
-| MVP Completion | End of Week 8 | 🔄 Not Started |
+| Editing & Splicing | End of Week 6 | ✅ Completed (100%) |
+| MVP Completion | End of Week 8 | 🔄 In Progress (20%) |
 
 ## Known Issues
 - Image path handling in the public directory requires careful attention
