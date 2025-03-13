@@ -11,6 +11,10 @@ Vidocrisy is a personal video generation platform that integrates multiple AI vi
 - Consistent branding at the beginning and end of all videos
 - Video storage and organization system
 - Basic video editing capabilities
+- Export options with multiple formats (MP4, WebM, QuickTime)
+- Quality presets (low, medium, high) for exports
+- Custom resolution and FPS settings
+- Export metadata customization
 
 ## Project Structure
 
@@ -96,6 +100,15 @@ Vidocrisy/
    ```
    http://localhost:3000
    ```
+
+### Static Files
+
+The application serves static files from multiple directories:
+- `/uploads`: For user-uploaded files
+- `/assets`: For application assets (images, videos, branding)
+- `/`: For files in the public directory
+
+If you encounter image loading issues, ensure the files are in one of these directories or update the paths in the code.
 
 ## API Keys
 
