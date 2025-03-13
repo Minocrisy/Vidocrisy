@@ -1,4 +1,4 @@
-# Active Context: VideoGen
+# Active Context: Vidocrisy
 
 ## Current Focus
 - Implementing Phase 1 (Foundation)
@@ -13,6 +13,7 @@
 - Implemented the basic UI framework with the user's visual style
 - Fixed image path issues in the frontend components
 - Created proper environment configuration for both frontend and backend
+- Renamed the project from "VideoGen" to "Vidocrisy" and updated all references throughout the codebase
 
 ## Next Steps
 1. ✅ Complete the Hedra API integration

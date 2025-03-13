@@ -1,7 +1,7 @@
 {
-  "name": "videogen",
+  "name": "Vidocrisy",
   "version": "0.1.0",
-  "description": "A personal video generation platform integrating multiple AI video generation services",
+  "description": "A personal video generation platform integrating multiple AI video generation services under the Vidocrisy brand",
   "main": "index.js",
   "scripts": {
     "frontend:dev": "cd src/frontend && npm run dev",

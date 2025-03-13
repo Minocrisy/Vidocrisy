@@ -1,4 +1,4 @@
-# Progress: VideoGen
+# Progress: Vidocrisy
 
 ## Project Status
 - Planning phase completed

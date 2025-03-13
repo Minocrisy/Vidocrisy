@@ -1,7 +1,7 @@
-# Project Brief: VideoGen
+# Project Brief: Vidocrisy
 
 ## Overview
-VideoGen is a personal video generation platform that integrates multiple AI video generation services (primarily Hedra, with RunwayML as a secondary option) into a unified interface. The platform will allow the user to generate, edit, splice, and brand videos with a focus on creating short movie-style and talking head videos.
+Vidocrisy is a personal video generation platform that integrates multiple AI video generation services (primarily Hedra, with RunwayML as a secondary option) into a unified interface. The platform will allow the user to generate, edit, splice, and brand videos with a focus on creating short movie-style and talking head videos.
 
 ## Core Requirements
 - Integration with Hedra API for primary video generation

@@ -8,7 +8,7 @@ const router = express.Router();
 
 // Health check for API
 router.get('/', (req, res) => {
-  res.status(200).json({ message: 'VideoGen API is running' });
+  res.status(200).json({ message: 'Vidocrisy API is running' });
 });
 
 // Mount routes

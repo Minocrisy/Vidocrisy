@@ -1,7 +1,7 @@
-# Product Context: VideoGen
+# Product Context: Vidocrisy
 
 ## Purpose
-VideoGen is a personal video generation platform that serves as a unified hub for creating, editing, and managing AI-generated videos. It provides a streamlined interface to access multiple AI video generation services (primarily Hedra, with RunwayML as a secondary option) without having to navigate different platforms and interfaces. The platform enables the user to create professional-looking videos with consistent branding and styling.
+Vidocrisy is a personal video generation platform that serves as a unified hub for creating, editing, and managing AI-generated videos. It provides a streamlined interface to access multiple AI video generation services (primarily Hedra, with RunwayML as a secondary option) without having to navigate different platforms and interfaces. The platform enables the user to create professional-looking videos with consistent branding and styling.
 
 ## Problems Solved
 - Eliminates the need to navigate multiple AI video generation platforms with different interfaces
@@ -58,7 +58,7 @@ While this is a personal tool, it exists in the context of:
 - Online video creators (Canva, InVideo, Lumen5)
 - AI avatar platforms (Synthesia, HeyGen, D-ID)
 
-VideoGen differentiates by providing a unified interface specifically tailored to the user's needs and aesthetic preferences.
+Vidocrisy differentiates by providing a unified interface specifically tailored to the user's needs and aesthetic preferences.
 
 ## Future Directions
 - Integration with additional AI services (Wan2.1, Hunyuan, LemonSlice.ai, Hailou.ai, Luma.ai Ray2)

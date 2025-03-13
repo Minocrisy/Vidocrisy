@@ -1,7 +1,7 @@
-# System Patterns: VideoGen
+# System Patterns: Vidocrisy
 
 ## Architecture Overview
-VideoGen follows a client-server architecture with a React frontend and Node.js backend:
+Vidocrisy follows a client-server architecture with a React frontend and Node.js backend:
 
 ```
 Frontend (React.js)

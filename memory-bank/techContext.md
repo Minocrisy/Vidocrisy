@@ -1,4 +1,4 @@
-# Technical Context: VideoGen
+# Technical Context: Vidocrisy
 
 ## Technologies Used
 

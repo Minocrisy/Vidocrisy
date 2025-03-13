@@ -1,7 +1,7 @@
 {
-  "name": "videogen-backend",
+  "name": "Vidocrisy-backend",
   "version": "0.1.0",
-  "description": "Backend for VideoGen - AI Video Generation Platform",
+  "description": "Backend for Vidocrisy - AI Video Generation Platform",
   "main": "index.js",
   "type": "module",
   "scripts": {

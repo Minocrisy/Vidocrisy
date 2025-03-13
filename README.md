@@ -1,6 +1,6 @@
-# VideoGen
+# Vidocrisy
 
-VideoGen is a personal video generation platform that integrates multiple AI video generation services (primarily Hedra, with RunwayML as a secondary option) into a unified interface. The platform allows users to generate, edit, splice, and brand videos with a focus on creating short movie-style and talking head videos.
+Vidocrisy is a personal video generation platform that integrates multiple AI video generation services (primarily Hedra, with RunwayML as a secondary option) into a unified interface. The platform allows users to generate, edit, splice, and brand videos with a focus on creating short movie-style and talking head videos.
 
 ## Features
 
@@ -15,7 +15,7 @@ VideoGen is a personal video generation platform that integrates multiple AI vid
 ## Project Structure
 
 ```
-videogen/
+Vidocrisy/
 ├── assets/                  # Static assets (images, videos, branding)
 ├── memory-bank/             # Project documentation
 ├── public/                  # Public static files
@@ -66,8 +66,8 @@ videogen/
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/videogen.git
-   cd videogen
+   git clone https://github.com/yourusername/Vidocrisy.git
+   cd Vidocrisy
    ```
 
 2. Install dependencies:

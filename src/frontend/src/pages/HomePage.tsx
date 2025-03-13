@@ -25,7 +25,7 @@ const HomePage = () => {
     <Box>
       <Box mb={8} textAlign="center" py={10}>
         <Heading as="h1" size="2xl" mb={4} className="glow-text" color="brand.300">
-          VideoGen
+          Vidocrisy
         </Heading>
         <Text fontSize="xl" maxW="800px" mx="auto">
           Your personal AI video generation platform

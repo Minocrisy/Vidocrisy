@@ -25,7 +25,7 @@ const Navbar = () => {
         <HStack spacing={4}>
           <Image 
             src="/assets/images/Minocrisy_Banner.png" 
-            alt="VideoGen" 
+            alt="Vidocrisy" 
             height="40px"
           />
           <Heading 
@@ -35,7 +35,7 @@ const Navbar = () => {
             className="glow-text"
             color="brand.300"
           >
-            VideoGen
+            Vidocrisy
           </Heading>
         </HStack>
 
