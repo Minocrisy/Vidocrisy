@@ -19,8 +19,13 @@ import {
   Text,
   Box,
   Divider,
-  useToast
+  useToast,
+  Tooltip,
+  IconButton,
+  Flex,
+  Badge
 } from '@chakra-ui/react';
+import { FiInfo, FiDownload, FiSettings, FiCheck } from 'react-icons/fi';
 import editorService, { ExportOptions } from '../../services/editor.service';
 
 interface ExportDialogProps {
@@ -153,8 +158,19 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
             Configure export settings for your video. Higher quality and resolution will result in larger file sizes.
           </Text>
           
-          <Box mb={6}>
-            <FormLabel fontWeight="bold">Format</FormLabel>
+          <Box mb={6} className="slide-in-up">
+            <Flex align="center" mb={2}>
+              <FormLabel fontWeight="bold" mb={0}>Format</FormLabel>
+              <Tooltip label="Choose the output format for your video" placement="top" hasArrow>
+                <IconButton
+                  aria-label="Format information"
+                  icon={<FiInfo />}
+                  size="xs"
+                  variant="ghost"
+                  ml={1}
+                />
+              </Tooltip>
+            </Flex>
             <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
               {formats.map((formatOption) => (
                 <Box
@@ -166,7 +182,22 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
                   bg={format === formatOption.id ? 'gray.700' : 'gray.800'}
                   cursor="pointer"
                   onClick={() => setFormat(formatOption.id as 'mp4' | 'webm' | 'mov')}
+                  _hover={{ borderColor: 'brand.400', transform: 'translateY(-2px)' }}
+                  transition="all 0.2s ease"
+                  className="card-hover"
+                  position="relative"
                 >
+                  {format === formatOption.id && (
+                    <Badge 
+                      position="absolute" 
+                      top={2} 
+                      right={2} 
+                      colorScheme="brand" 
+                      borderRadius="full"
+                    >
+                      <FiCheck size={10} />
+                    </Badge>
+                  )}
                   <Text fontWeight="bold">{formatOption.name}</Text>
                   <Text fontSize="sm">{formatOption.description}</Text>
                 </Box>
@@ -174,8 +205,19 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
             </SimpleGrid>
           </Box>
           
-          <Box mb={6}>
-            <FormLabel fontWeight="bold">Quality Preset</FormLabel>
+          <Box mb={6} className="slide-in-up" style={{ animationDelay: '0.1s' }}>
+            <Flex align="center" mb={2}>
+              <FormLabel fontWeight="bold" mb={0}>Quality Preset</FormLabel>
+              <Tooltip label="Select a quality preset for your export" placement="top" hasArrow>
+                <IconButton
+                  aria-label="Quality information"
+                  icon={<FiInfo />}
+                  size="xs"
+                  variant="ghost"
+                  ml={1}
+                />
+              </Tooltip>
+            </Flex>
             <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
               {qualities.map((qualityOption) => (
                 <Box
@@ -190,7 +232,22 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
                     setQuality(qualityOption.id as 'low' | 'medium' | 'high');
                     setCustomResolution(false);
                   }}
+                  _hover={{ borderColor: 'brand.400', transform: 'translateY(-2px)' }}
+                  transition="all 0.2s ease"
+                  className="card-hover"
+                  position="relative"
                 >
+                  {quality === qualityOption.id && (
+                    <Badge 
+                      position="absolute" 
+                      top={2} 
+                      right={2} 
+                      colorScheme="brand" 
+                      borderRadius="full"
+                    >
+                      <FiCheck size={10} />
+                    </Badge>
+                  )}
                   <Text fontWeight="bold">{qualityOption.name}</Text>
                   <Text fontSize="sm">{qualityOption.description}</Text>
                   <Text fontSize="xs" mt={1}>
@@ -201,92 +258,161 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
             </SimpleGrid>
           </Box>
           
-          <Box mb={6}>
-            <FormControl display="flex" alignItems="center" mb={4}>
-              <RadioGroup value={customResolution ? 'custom' : 'preset'} onChange={(value) => setCustomResolution(value === 'custom')}>
-                <Stack direction="row">
-                  <Radio value="preset">Use quality preset</Radio>
-                  <Radio value="custom">Custom resolution</Radio>
-                </Stack>
-              </RadioGroup>
-            </FormControl>
+          <Box mb={6} className="slide-in-up" style={{ animationDelay: '0.2s' }}>
+            <Flex align="center" mb={2}>
+              <FormLabel fontWeight="bold" mb={0}>Resolution Settings</FormLabel>
+              <Tooltip label="Choose between preset or custom resolution" placement="top" hasArrow>
+                <IconButton
+                  aria-label="Resolution information"
+                  icon={<FiInfo />}
+                  size="xs"
+                  variant="ghost"
+                  ml={1}
+                />
+              </Tooltip>
+            </Flex>
             
-            {customResolution && (
-              <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-                <FormControl>
-                  <FormLabel>Width</FormLabel>
-                  <Input
-                    type="number"
-                    value={width}
-                    onChange={(e) => setWidth(parseInt(e.target.value))}
-                    bg="gray.700"
-                  />
-                </FormControl>
-                <FormControl>
-                  <FormLabel>Height</FormLabel>
-                  <Input
-                    type="number"
-                    value={height}
-                    onChange={(e) => setHeight(parseInt(e.target.value))}
-                    bg="gray.700"
-                  />
-                </FormControl>
-                <FormControl>
-                  <FormLabel>FPS</FormLabel>
-                  <Input
-                    type="number"
-                    value={fps}
-                    onChange={(e) => setFps(parseInt(e.target.value))}
-                    bg="gray.700"
-                  />
-                </FormControl>
-              </SimpleGrid>
-            )}
+            <Box 
+              p={4} 
+              borderWidth="1px" 
+              borderRadius="md" 
+              borderColor="gray.600"
+              bg="gray.800"
+              mb={4}
+            >
+              <FormControl display="flex" alignItems="center" mb={4}>
+                <RadioGroup value={customResolution ? 'custom' : 'preset'} onChange={(value) => setCustomResolution(value === 'custom')}>
+                  <Stack direction="row">
+                    <Radio value="preset">Use quality preset</Radio>
+                    <Radio value="custom">Custom resolution</Radio>
+                  </Stack>
+                </RadioGroup>
+              </FormControl>
+              
+              {customResolution && (
+                <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4} className="fade-in">
+                  <FormControl>
+                    <FormLabel>Width</FormLabel>
+                    <Input
+                      type="number"
+                      value={width}
+                      onChange={(e) => setWidth(parseInt(e.target.value))}
+                      bg="gray.700"
+                      _hover={{ borderColor: 'brand.400' }}
+                      _focus={{ borderColor: 'brand.500', boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      transition="all 0.2s ease"
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>Height</FormLabel>
+                    <Input
+                      type="number"
+                      value={height}
+                      onChange={(e) => setHeight(parseInt(e.target.value))}
+                      bg="gray.700"
+                      _hover={{ borderColor: 'brand.400' }}
+                      _focus={{ borderColor: 'brand.500', boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      transition="all 0.2s ease"
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <FormLabel>FPS</FormLabel>
+                    <Input
+                      type="number"
+                      value={fps}
+                      onChange={(e) => setFps(parseInt(e.target.value))}
+                      bg="gray.700"
+                      _hover={{ borderColor: 'brand.400' }}
+                      _focus={{ borderColor: 'brand.500', boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                      transition="all 0.2s ease"
+                    />
+                  </FormControl>
+                </SimpleGrid>
+              )}
+            </Box>
           </Box>
           
           <Divider my={6} />
           
-          <Box mb={6}>
-            <FormLabel fontWeight="bold">Output Options</FormLabel>
-            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-              <FormControl>
-                <FormLabel>Filename</FormLabel>
-                <Input
-                  value={filename}
-                  onChange={(e) => setFilename(e.target.value)}
-                  bg="gray.700"
+          <Box mb={6} className="slide-in-up" style={{ animationDelay: '0.3s' }}>
+            <Flex align="center" mb={2}>
+              <FormLabel fontWeight="bold" mb={0}>Output Options</FormLabel>
+              <Tooltip label="Metadata for your exported video" placement="top" hasArrow>
+                <IconButton
+                  aria-label="Output information"
+                  icon={<FiInfo />}
+                  size="xs"
+                  variant="ghost"
+                  ml={1}
                 />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Category</FormLabel>
-                <Input
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  bg="gray.700"
-                />
-              </FormControl>
-              <FormControl gridColumn={{ md: 'span 2' }}>
-                <FormLabel>Description</FormLabel>
-                <Input
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  bg="gray.700"
-                />
-              </FormControl>
-              <FormControl gridColumn={{ md: 'span 2' }}>
-                <FormLabel>Tags (comma separated)</FormLabel>
-                <Input
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  bg="gray.700"
-                />
-              </FormControl>
-            </SimpleGrid>
+              </Tooltip>
+            </Flex>
+            
+            <Box 
+              p={4} 
+              borderWidth="1px" 
+              borderRadius="md" 
+              borderColor="gray.600"
+              bg="gray.800"
+            >
+              <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                <FormControl>
+                  <FormLabel>Filename</FormLabel>
+                  <Input
+                    value={filename}
+                    onChange={(e) => setFilename(e.target.value)}
+                    bg="gray.700"
+                    _hover={{ borderColor: 'brand.400' }}
+                    _focus={{ borderColor: 'brand.500', boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                    transition="all 0.2s ease"
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel>Category</FormLabel>
+                  <Input
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    bg="gray.700"
+                    _hover={{ borderColor: 'brand.400' }}
+                    _focus={{ borderColor: 'brand.500', boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                    transition="all 0.2s ease"
+                  />
+                </FormControl>
+                <FormControl gridColumn={{ md: 'span 2' }}>
+                  <FormLabel>Description</FormLabel>
+                  <Input
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    bg="gray.700"
+                    _hover={{ borderColor: 'brand.400' }}
+                    _focus={{ borderColor: 'brand.500', boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                    transition="all 0.2s ease"
+                  />
+                </FormControl>
+                <FormControl gridColumn={{ md: 'span 2' }}>
+                  <FormLabel>Tags (comma separated)</FormLabel>
+                  <Input
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    bg="gray.700"
+                    _hover={{ borderColor: 'brand.400' }}
+                    _focus={{ borderColor: 'brand.500', boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
+                    transition="all 0.2s ease"
+                  />
+                </FormControl>
+              </SimpleGrid>
+            </Box>
           </Box>
         </ModalBody>
 
         <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={onClose} isDisabled={isExporting}>
+          <Button 
+            variant="ghost" 
+            mr={3} 
+            onClick={onClose} 
+            isDisabled={isExporting}
+            _hover={{ bg: 'gray.700' }}
+          >
             Cancel
           </Button>
           <Button 
@@ -295,8 +421,15 @@ const ExportDialog: React.FC<ExportDialogProps> = ({
             isLoading={isExporting}
             loadingText={`Exporting (${progress}%)`}
             isDisabled={!videoId}
+            leftIcon={<FiDownload />}
+            className="btn-hover"
+            _hover={{
+              transform: 'translateY(-2px)',
+              boxShadow: 'lg'
+            }}
+            transition="all 0.2s ease"
           >
-            Export
+            Export Video
           </Button>
         </ModalFooter>
       </ModalContent>

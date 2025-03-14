@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -30,7 +30,8 @@ import {
   FormControl,
   FormLabel,
   Select,
-  Textarea
+  Textarea,
+  Badge
 } from '@chakra-ui/react';
 import {
   FiPlus,
@@ -58,6 +59,14 @@ import videoService from '../../services/video.service';
 import editorService from '../../services/editor.service';
 import { VideoMetadata } from '../../services/video.service';
 import ExportDialog from './ExportDialog';
+import { 
+  useDebounce, 
+  useThrottle, 
+  useMemoize, 
+  useLazyLoad,
+  useNetworkStatus
+} from '../../hooks/usePerformance';
+import { memoize } from '../../utils/performance';
 
 // Define types
 interface TimelineItem {
@@ -78,8 +87,15 @@ interface DragItem {
   type: string;
 }
 
-// Timeline Item Component
-const TimelineItemComponent = ({ 
+// Memoized format time function
+const formatTime = memoize((seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+});
+
+// Timeline Item Component - Memoized to prevent unnecessary re-renders
+const TimelineItemComponent = React.memo(({ 
   item, 
   index, 
   moveItem, 
@@ -159,6 +175,12 @@ const TimelineItemComponent = ({
   drag(drop(ref));
   
   const opacity = isDragging ? 0.4 : 1;
+
+  // Memoize the remove item handler to prevent unnecessary re-renders
+  const handleRemoveItem = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    removeItem(index);
+  }, [index, removeItem]);
   
   return (
     <Box
@@ -191,10 +213,7 @@ const TimelineItemComponent = ({
               icon={<FiTrash2 size={12} />}
               size="xs"
               variant="ghost"
-              onClick={(e) => {
-                e.stopPropagation();
-                removeItem(index);
-              }}
+              onClick={handleRemoveItem}
             />
           </HStack>
           <Flex
@@ -224,24 +243,14 @@ const TimelineItemComponent = ({
               icon={<FiTrash2 size={12} />}
               size="xs"
               variant="ghost"
-              onClick={(e) => {
-                e.stopPropagation();
-                removeItem(index);
-              }}
+              onClick={handleRemoveItem}
             />
           </HStack>
         </>
       )}
     </Box>
   );
-};
-
-// Format time (seconds to MM:SS)
-const formatTime = (seconds: number) => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-  return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-};
+});
 
 // Main VideoEditor Component
 const VideoEditor = () => {
@@ -260,6 +269,29 @@ const VideoEditor = () => {
   const [outputCategory, setOutputCategory] = useState('');
   const [outputTags, setOutputTags] = useState('');
   const [showExportDialog, setShowExportDialog] = useState(false);
+
+  // Network status monitoring
+  const { online, connectionType } = useNetworkStatus();
+  
+  // Lazy load for assets panel
+  const assetsLazyLoad = useLazyLoad();
+  
+  // Debounced output field handlers
+  const debouncedSetOutputFilename = useDebounce((value: string) => {
+    setOutputFilename(value);
+  }, 300);
+  
+  const debouncedSetOutputDescription = useDebounce((value: string) => {
+    setOutputDescription(value);
+  }, 300);
+  
+  const debouncedSetOutputCategory = useDebounce((value: string) => {
+    setOutputCategory(value);
+  }, 300);
+  
+  const debouncedSetOutputTags = useDebounce((value: string) => {
+    setOutputTags(value);
+  }, 300);
   
   // Fetch videos and transitions on component mount
   useEffect(() => {
@@ -293,47 +325,67 @@ const VideoEditor = () => {
     
     fetchData();
   }, [toast]);
+
+  // Show offline warning if network is disconnected
+  useEffect(() => {
+    if (!online) {
+      toast({
+        title: 'You are offline',
+        description: 'Some features may not work properly',
+        status: 'warning',
+        duration: 5000,
+        isClosable: true
+      });
+    }
+  }, [online, toast]);
   
-  // Move timeline item
-  const moveTimelineItem = (dragIndex: number, hoverIndex: number) => {
-    const dragItem = timelineItems[dragIndex];
-    const newTimelineItems = [...timelineItems];
-    newTimelineItems.splice(dragIndex, 1);
-    newTimelineItems.splice(hoverIndex, 0, dragItem);
+  // Move timeline item - memoized to prevent unnecessary re-renders
+  const moveTimelineItem = useCallback((dragIndex: number, hoverIndex: number) => {
+    setTimelineItems(prevItems => {
+      const dragItem = prevItems[dragIndex];
+      const newTimelineItems = [...prevItems];
+      newTimelineItems.splice(dragIndex, 1);
+      newTimelineItems.splice(hoverIndex, 0, dragItem);
+      return newTimelineItems;
+    });
     
     // Update selected item index if it was moved
-    if (selectedItemIndex === dragIndex) {
-      setSelectedItemIndex(hoverIndex);
-    } else if (
-      selectedItemIndex !== null &&
-      ((dragIndex < selectedItemIndex && hoverIndex >= selectedItemIndex) ||
-        (dragIndex > selectedItemIndex && hoverIndex <= selectedItemIndex))
-    ) {
-      // Adjust selected item index if items were moved around it
-      setSelectedItemIndex(
-        dragIndex < selectedItemIndex ? selectedItemIndex - 1 : selectedItemIndex + 1
-      );
-    }
-    
-    setTimelineItems(newTimelineItems);
-  };
+    setSelectedItemIndex(prevIndex => {
+      if (prevIndex === dragIndex) {
+        return hoverIndex;
+      } else if (
+        prevIndex !== null &&
+        ((dragIndex < prevIndex && hoverIndex >= prevIndex) ||
+          (dragIndex > prevIndex && hoverIndex <= prevIndex))
+      ) {
+        // Adjust selected item index if items were moved around it
+        return dragIndex < prevIndex ? prevIndex - 1 : prevIndex + 1;
+      }
+      return prevIndex;
+    });
+  }, []);
   
-  // Remove timeline item
-  const removeTimelineItem = (index: number) => {
-    const newTimelineItems = [...timelineItems];
-    newTimelineItems.splice(index, 1);
-    setTimelineItems(newTimelineItems);
+  // Remove timeline item - memoized to prevent unnecessary re-renders
+  const removeTimelineItem = useCallback((index: number) => {
+    setTimelineItems(prevItems => {
+      const newTimelineItems = [...prevItems];
+      newTimelineItems.splice(index, 1);
+      return newTimelineItems;
+    });
     
     // Update selected item index if needed
-    if (selectedItemIndex === index) {
-      setSelectedItemIndex(null);
-    } else if (selectedItemIndex !== null && selectedItemIndex > index) {
-      setSelectedItemIndex(selectedItemIndex - 1);
-    }
-  };
+    setSelectedItemIndex(prevIndex => {
+      if (prevIndex === index) {
+        return null;
+      } else if (prevIndex !== null && prevIndex > index) {
+        return prevIndex - 1;
+      }
+      return prevIndex;
+    });
+  }, []);
   
-  // Select timeline item
-  const selectTimelineItem = (index: number) => {
+  // Select timeline item - memoized to prevent unnecessary re-renders
+  const selectTimelineItem = useCallback((index: number) => {
     setSelectedItemIndex(index);
     
     // Set current video if the selected item is a video
@@ -343,10 +395,10 @@ const VideoEditor = () => {
     } else {
       setCurrentVideo(null);
     }
-  };
+  }, [timelineItems]);
   
-  // Add video to timeline
-  const addVideoToTimeline = (video: VideoMetadata) => {
+  // Add video to timeline - memoized to prevent unnecessary re-renders
+  const addVideoToTimeline = useCallback((video: VideoMetadata) => {
     const newItem: TimelineItem = {
       id: `video-${Date.now()}-${Math.round(Math.random() * 1E9)}`,
       type: 'video',
@@ -358,11 +410,11 @@ const VideoEditor = () => {
       title: video.description || video.filename
     };
     
-    setTimelineItems([...timelineItems, newItem]);
-  };
+    setTimelineItems(prevItems => [...prevItems, newItem]);
+  }, []);
   
-  // Add transition to timeline
-  const addTransitionToTimeline = (transitionType: 'fade' | 'dissolve' | 'wipe' | 'zoom') => {
+  // Add transition to timeline - memoized to prevent unnecessary re-renders
+  const addTransitionToTimeline = useCallback((transitionType: 'fade' | 'dissolve' | 'wipe' | 'zoom') => {
     const newItem: TimelineItem = {
       id: `transition-${Date.now()}-${Math.round(Math.random() * 1E9)}`,
       type: 'transition',
@@ -372,27 +424,38 @@ const VideoEditor = () => {
       endTime: 1
     };
     
-    // If there's a selected item, insert after it
-    if (selectedItemIndex !== null) {
-      const newTimelineItems = [...timelineItems];
-      newTimelineItems.splice(selectedItemIndex + 1, 0, newItem);
-      setTimelineItems(newTimelineItems);
-      setSelectedItemIndex(selectedItemIndex + 1);
-    } else {
-      setTimelineItems([...timelineItems, newItem]);
-      setSelectedItemIndex(timelineItems.length);
-    }
-  };
+    setTimelineItems(prevItems => {
+      // If there's a selected item, insert after it
+      if (selectedItemIndex !== null) {
+        const newTimelineItems = [...prevItems];
+        newTimelineItems.splice(selectedItemIndex + 1, 0, newItem);
+        return newTimelineItems;
+      } else {
+        return [...prevItems, newItem];
+      }
+    });
+    
+    // Update selected item index
+    setSelectedItemIndex(prevIndex => {
+      if (prevIndex !== null) {
+        return prevIndex + 1;
+      } else {
+        return timelineItems.length;
+      }
+    });
+  }, [selectedItemIndex, timelineItems.length]);
   
-  // Update timeline item
-  const updateTimelineItem = (index: number, updates: Partial<TimelineItem>) => {
-    const newTimelineItems = [...timelineItems];
-    newTimelineItems[index] = { ...newTimelineItems[index], ...updates };
-    setTimelineItems(newTimelineItems);
-  };
+  // Update timeline item - memoized to prevent unnecessary re-renders
+  const updateTimelineItem = useCallback((index: number, updates: Partial<TimelineItem>) => {
+    setTimelineItems(prevItems => {
+      const newTimelineItems = [...prevItems];
+      newTimelineItems[index] = { ...newTimelineItems[index], ...updates };
+      return newTimelineItems;
+    });
+  }, []);
   
-  // Combine videos
-  const combineVideos = async () => {
+  // Combine videos - throttled to prevent multiple rapid calls
+  const combineVideos = useThrottle(async () => {
     // Validate timeline
     if (timelineItems.length === 0) {
       toast({
@@ -478,10 +541,10 @@ const VideoEditor = () => {
         isClosable: true
       });
     }
-  };
+  }, 1000);
   
-  // Add branding to video
-  const addBrandingToVideo = async (videoId: string, brandingType: string, brandingId: string) => {
+  // Add branding to video - throttled to prevent multiple rapid calls
+  const addBrandingToVideo = useThrottle(async (videoId: string, brandingType: string, brandingId: string) => {
     if (!videoId) {
       toast({
         title: 'No video selected',
@@ -553,10 +616,10 @@ const VideoEditor = () => {
         isClosable: true
       });
     }
-  };
+  }, 1000);
   
-  // Trim video
-  const trimVideo = async (videoId: string, startTime: number, endTime: number) => {
+  // Trim video - throttled to prevent multiple rapid calls
+  const trimVideo = useThrottle(async (videoId: string, startTime: number, endTime: number) => {
     if (!videoId) {
       toast({
         title: 'No video selected',
@@ -616,10 +679,10 @@ const VideoEditor = () => {
         isClosable: true
       });
     }
-  };
+  }, 1000);
   
-  // Handle export completion
-  const handleExportComplete = (newVideoId: string) => {
+  // Handle export completion - memoized to prevent unnecessary re-renders
+  const handleExportComplete = useCallback((newVideoId: string) => {
     setCurrentVideo(newVideoId);
     toast({
       title: 'Export complete',
@@ -628,17 +691,50 @@ const VideoEditor = () => {
       duration: 5000,
       isClosable: true
     });
-  };
+  }, [toast]);
+
+  // Memoized rendering of timeline items
+  const renderTimelineItems = useMemoize(() => {
+    if (timelineItems.length === 0) {
+      return (
+        <Flex
+          justify="center"
+          align="center"
+          width="100%"
+          height="80px"
+          borderWidth="2px"
+          borderStyle="dashed"
+          borderColor="gray.600"
+          borderRadius="md"
+        >
+          <Text color="gray.500">Drag videos and transitions here</Text>
+        </Flex>
+      );
+    }
+
+    return timelineItems.map((item, index) => (
+      <TimelineItemComponent
+        key={item.id}
+        item={item}
+        index={index}
+        moveItem={moveTimelineItem}
+        removeItem={removeTimelineItem}
+        selectItem={selectTimelineItem}
+        isSelected={selectedItemIndex === index}
+      />
+    ));
+  }, [timelineItems, selectedItemIndex, moveTimelineItem, removeTimelineItem, selectTimelineItem]);
   
   return (
     <DndProvider backend={HTML5Backend}>
-      <Box>
-        <Heading as="h1" size="xl" mb={6}>
-          Video Editor
-        </Heading>
-        <Text mb={8}>
-          Splice, trim, and combine videos with easy-to-apply transitions.
-        </Text>
+      <Box className="fade-in">
+        {!online && (
+          <Box bg="red.700" p={2} mb={4} borderRadius="md">
+            <Text color="white" textAlign="center">
+              You are currently offline. Some features may not work properly.
+            </Text>
+          </Box>
+        )}
 
         <Grid templateColumns="1fr 300px" gap={6}>
           <GridItem>
@@ -692,32 +788,7 @@ const VideoEditor = () => {
                   overflowX="auto"
                 >
                   <Flex minWidth="800px">
-                    {timelineItems.length > 0 ? (
-                      timelineItems.map((item, index) => (
-                        <TimelineItemComponent
-                          key={item.id}
-                          item={item}
-                          index={index}
-                          moveItem={moveTimelineItem}
-                          removeItem={removeTimelineItem}
-                          selectItem={selectTimelineItem}
-                          isSelected={selectedItemIndex === index}
-                        />
-                      ))
-                    ) : (
-                      <Flex
-                        justify="center"
-                        align="center"
-                        width="100%"
-                        height="80px"
-                        borderWidth="2px"
-                        borderStyle="dashed"
-                        borderColor="gray.600"
-                        borderRadius="md"
-                      >
-                        <Text color="gray.500">Drag videos and transitions here</Text>
-                      </Flex>
-                    )}
+                    {renderTimelineItems()}
                   </Flex>
                 </Box>
 
@@ -730,8 +801,8 @@ const VideoEditor = () => {
                     <FormControl>
                       <FormLabel>Filename</FormLabel>
                       <Input
-                        value={outputFilename}
-                        onChange={(e) => setOutputFilename(e.target.value)}
+                        defaultValue={outputFilename}
+                        onChange={(e) => debouncedSetOutputFilename(e.target.value)}
                         placeholder="Enter filename"
                         bg="gray.700"
                       />
@@ -739,8 +810,8 @@ const VideoEditor = () => {
                     <FormControl>
                       <FormLabel>Category</FormLabel>
                       <Input
-                        value={outputCategory}
-                        onChange={(e) => setOutputCategory(e.target.value)}
+                        defaultValue={outputCategory}
+                        onChange={(e) => debouncedSetOutputCategory(e.target.value)}
                         placeholder="Enter category"
                         bg="gray.700"
                       />
@@ -748,8 +819,8 @@ const VideoEditor = () => {
                     <FormControl>
                       <FormLabel>Description</FormLabel>
                       <Textarea
-                        value={outputDescription}
-                        onChange={(e) => setOutputDescription(e.target.value)}
+                        defaultValue={outputDescription}
+                        onChange={(e) => debouncedSetOutputDescription(e.target.value)}
                         placeholder="Enter description"
                         bg="gray.700"
                         rows={2}
@@ -758,8 +829,8 @@ const VideoEditor = () => {
                     <FormControl>
                       <FormLabel>Tags (comma separated)</FormLabel>
                       <Input
-                        value={outputTags}
-                        onChange={(e) => setOutputTags(e.target.value)}
+                        defaultValue={outputTags}
+                        onChange={(e) => debouncedSetOutputTags(e.target.value)}
                         placeholder="Enter tags"
                         bg="gray.700"
                       />
@@ -818,152 +889,160 @@ const VideoEditor = () => {
                   </Button>
                 </Flex>
 
-                {/* Videos */}
-                <Box mb={6}>
-                  <Heading as="h4" size="sm" mb={2}>
-                    Videos
-                  </Heading>
-                  <VStack spacing={3} align="stretch" maxHeight="200px" overflowY="auto">
-                    {videos.map((video) => (
-                      <Box
-                        key={video.id}
-                        p={2}
-                        bg="gray.700"
-                        borderRadius="md"
-                        _hover={{ bg: 'gray.600' }}
-                        cursor="pointer"
-                        onClick={() => addVideoToTimeline(video)}
-                      >
-                        <Flex>
-                          <Box
-                            bg="gray.600"
-                            boxSize="50px"
-                            borderRadius="md"
-                            mr={3}
-                            overflow="hidden"
-                          >
-                            {video.thumbnailUrl ? (
-                              <Image
-                                src={video.thumbnailUrl}
-                                alt="Video thumbnail"
-                                boxSize="50px"
-                                objectFit="cover"
-                              />
-                            ) : (
-                              <Flex
-                                align="center"
-                                justify="center"
-                                height="100%"
-                              >
-                                <Text fontSize="xs">No thumbnail</Text>
+                {/* Only render the assets content when it's visible in the viewport */}
+                <div ref={assetsLazyLoad.ref as React.RefObject<HTMLDivElement>}>
+                  {assetsLazyLoad.isVisible && (
+                    <>
+                      {/* Videos */}
+                      <Box mb={6}>
+                        <Heading as="h4" size="sm" mb={2}>
+                          Videos
+                        </Heading>
+                        <VStack spacing={3} align="stretch" maxHeight="200px" overflowY="auto">
+                          {videos.map((video) => (
+                            <Box
+                              key={video.id}
+                              p={2}
+                              bg="gray.700"
+                              borderRadius="md"
+                              _hover={{ bg: 'gray.600' }}
+                              cursor="pointer"
+                              onClick={() => addVideoToTimeline(video)}
+                            >
+                              <Flex>
+                                <Box
+                                  bg="gray.600"
+                                  boxSize="50px"
+                                  borderRadius="md"
+                                  mr={3}
+                                  overflow="hidden"
+                                >
+                                  {video.thumbnailUrl ? (
+                                    <Image
+                                      src={video.thumbnailUrl}
+                                      alt="Video thumbnail"
+                                      boxSize="50px"
+                                      objectFit="cover"
+                                      loading="lazy"
+                                    />
+                                  ) : (
+                                    <Flex
+                                      align="center"
+                                      justify="center"
+                                      height="100%"
+                                    >
+                                      <Text fontSize="xs">No thumbnail</Text>
+                                    </Flex>
+                                  )}
+                                </Box>
+                                <Box>
+                                  <Text fontWeight="bold" fontSize="sm" isTruncated>
+                                    {video.description || video.filename}
+                                  </Text>
+                                  <Text fontSize="xs">
+                                  {video.duration ? formatTime(video.duration) : 'Unknown duration'} • {video.source}
+                                  </Text>
+                                </Box>
                               </Flex>
-                            )}
-                          </Box>
-                          <Box>
-                            <Text fontWeight="bold" fontSize="sm" isTruncated>
-                              {video.description || video.filename}
-                            </Text>
-                            <Text fontSize="xs">
-                              {video.duration ? formatTime(video.duration) : 'Unknown duration'} • {video.source}
-                            </Text>
-                          </Box>
-                        </Flex>
+                            </Box>
+                          ))}
+                        </VStack>
                       </Box>
-                    ))}
-                  </VStack>
-                </Box>
 
-                <Divider mb={6} />
+                      <Divider mb={6} />
 
-                {/* Transitions */}
-                <Box mb={6}>
-                  <Heading as="h4" size="sm" mb={2}>
-                    Transitions
-                  </Heading>
-                  <SimpleGrid columns={2} spacing={3}>
-                    {transitions.map((transition) => (
-                      <Box
-                        key={transition.id}
-                        p={2}
-                        bg="purple.800"
-                        borderRadius="md"
-                        textAlign="center"
-                        _hover={{ bg: 'purple.700' }}
-                        cursor="pointer"
-                        onClick={() => addTransitionToTimeline(transition.id as 'fade' | 'dissolve' | 'wipe' | 'zoom')}
-                      >
-                        <Text fontSize="sm">{transition.name}</Text>
+                      {/* Transitions */}
+                      <Box mb={6}>
+                        <Heading as="h4" size="sm" mb={2}>
+                          Transitions
+                        </Heading>
+                        <SimpleGrid columns={2} spacing={3}>
+                          {transitions.map((transition) => (
+                            <Box
+                              key={transition.id}
+                              p={2}
+                              bg="purple.800"
+                              borderRadius="md"
+                              textAlign="center"
+                              _hover={{ bg: 'purple.700' }}
+                              cursor="pointer"
+                              onClick={() => addTransitionToTimeline(transition.id as 'fade' | 'dissolve' | 'wipe' | 'zoom')}
+                            >
+                              <Text fontSize="sm">{transition.name}</Text>
+                            </Box>
+                          ))}
+                        </SimpleGrid>
                       </Box>
-                    ))}
-                  </SimpleGrid>
-                </Box>
 
-                <Divider mb={6} />
+                      <Divider mb={6} />
 
-                {/* Branding */}
-                <Box>
-                  <Heading as="h4" size="sm" mb={2}>
-                    Branding
-                  </Heading>
-                  <VStack spacing={3} align="stretch">
-                    {brandingTemplates
-                      .filter((template) => template.type === 'intro')
-                      .map((template) => (
-                        <Button
-                          key={template.id}
-                          variant="outline"
-                          leftIcon={<FiPlus />}
-                          size="sm"
-                          onClick={() => {
-                            if (currentVideo) {
-                              addBrandingToVideo(currentVideo, 'intro', template.id);
-                            }
-                          }}
-                          isDisabled={!currentVideo}
-                        >
-                          {template.name}
-                        </Button>
-                      ))}
-                    
-                    {brandingTemplates
-                      .filter((template) => template.type === 'outro')
-                      .map((template) => (
-                        <Button
-                          key={template.id}
-                          variant="outline"
-                          leftIcon={<FiPlus />}
-                          size="sm"
-                          onClick={() => {
-                            if (currentVideo) {
-                              addBrandingToVideo(currentVideo, 'outro', template.id);
-                            }
-                          }}
-                          isDisabled={!currentVideo}
-                        >
-                          {template.name}
-                        </Button>
-                      ))}
-                    
-                    {brandingTemplates
-                      .filter((template) => template.type === 'lowerThird')
-                      .map((template) => (
-                        <Button
-                          key={template.id}
-                          variant="outline"
-                          leftIcon={<FiPlus />}
-                          size="sm"
-                          onClick={() => {
-                            if (currentVideo) {
-                              addBrandingToVideo(currentVideo, 'lowerThird', template.id);
-                            }
-                          }}
-                          isDisabled={!currentVideo}
-                        >
-                          {template.name}
-                        </Button>
-                      ))}
-                  </VStack>
-                </Box>
+                      {/* Branding */}
+                      <Box>
+                        <Heading as="h4" size="sm" mb={2}>
+                          Branding
+                        </Heading>
+                        <VStack spacing={3} align="stretch">
+                          {brandingTemplates
+                            .filter((template) => template.type === 'intro')
+                            .map((template) => (
+                              <Button
+                                key={template.id}
+                                variant="outline"
+                                leftIcon={<FiPlus />}
+                                size="sm"
+                                onClick={() => {
+                                  if (currentVideo) {
+                                    addBrandingToVideo(currentVideo, 'intro', template.id);
+                                  }
+                                }}
+                                isDisabled={!currentVideo}
+                              >
+                                {template.name}
+                              </Button>
+                            ))}
+                          
+                          {brandingTemplates
+                            .filter((template) => template.type === 'outro')
+                            .map((template) => (
+                              <Button
+                                key={template.id}
+                                variant="outline"
+                                leftIcon={<FiPlus />}
+                                size="sm"
+                                onClick={() => {
+                                  if (currentVideo) {
+                                    addBrandingToVideo(currentVideo, 'outro', template.id);
+                                  }
+                                }}
+                                isDisabled={!currentVideo}
+                              >
+                                {template.name}
+                              </Button>
+                            ))}
+                          
+                          {brandingTemplates
+                            .filter((template) => template.type === 'lowerthird')
+                            .map((template) => (
+                              <Button
+                                key={template.id}
+                                variant="outline"
+                                leftIcon={<FiPlus />}
+                                size="sm"
+                                onClick={() => {
+                                  if (currentVideo) {
+                                    addBrandingToVideo(currentVideo, 'lowerThird', template.id);
+                                  }
+                                }}
+                                isDisabled={!currentVideo}
+                              >
+                                {template.name}
+                              </Button>
+                            ))}
+                        </VStack>
+                      </Box>
+                    </>
+                  )}
+                </div>
               </CardBody>
             </Card>
           </GridItem>
@@ -982,4 +1061,3 @@ const VideoEditor = () => {
 };
 
 export default VideoEditor;
-
