@@ -7,6 +7,37 @@ import '@testing-library/jest-dom';
 // Add Jest types
 import { jest } from '@jest/globals';
 
+// Add type augmentation for @testing-library/jest-dom
+declare global {
+  namespace jest {
+    interface Matchers<R = void, T = {}> {
+      toBeInTheDocument(): R;
+      toHaveTextContent(content: string | RegExp): R;
+      toBeVisible(): R;
+      toBeDisabled(): R;
+      toBeEnabled(): R;
+      toBeChecked(): R;
+      toBePartiallyChecked(): R;
+      toHaveAttribute(attr: string, value?: any): R;
+      toHaveClass(...classNames: string[]): R;
+      toHaveFocus(): R;
+      toHaveFormValues(values: { [name: string]: any }): R;
+      toHaveStyle(css: string | object): R;
+      toHaveValue(value?: string | string[] | number): R;
+      toBeEmpty(): R;
+      toBeInvalid(): R;
+      toBeRequired(): R;
+      toBeValid(): R;
+      toContainElement(element: HTMLElement | null): R;
+      toContainHTML(htmlText: string): R;
+      toHaveAccessibleDescription(description?: string | RegExp): R;
+      toHaveAccessibleName(name?: string | RegExp): R;
+      toHaveDisplayValue(value: string | RegExp | Array<string | RegExp>): R;
+      toBeEmptyDOMElement(): R;
+    }
+  }
+}
+
 // Mock the window.matchMedia function
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

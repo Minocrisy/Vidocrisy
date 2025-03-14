@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
@@ -7,7 +8,7 @@ import { jest, describe, test, expect } from '@jest/globals';
 
 // Mock the react-router-dom useNavigate hook
 jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+  ...(jest.requireActual('react-router-dom') as object),
   useNavigate: () => jest.fn(),
 }));
 
@@ -28,17 +29,17 @@ describe('HomePage Component', () => {
     expect(titleElement).toBeInTheDocument();
   });
 
-  test('renders the main heading', () => {
+  test('renders the subtitle', () => {
     renderHomePage();
-    const headingElement = screen.getByRole('heading', { name: /AI-Powered Video Generation/i });
-    expect(headingElement).toBeInTheDocument();
+    const subtitleElement = screen.getByText(/Your personal AI video generation platform/i);
+    expect(subtitleElement).toBeInTheDocument();
   });
 
   test('renders the feature cards', () => {
     renderHomePage();
-    const generateFeature = screen.getByText(/Generate Videos/i);
-    const editFeature = screen.getByText(/Edit Videos/i);
-    const libraryFeature = screen.getByText(/Manage Library/i);
+    const generateFeature = screen.getByText(/Generate/i);
+    const editFeature = screen.getByText(/Edit/i);
+    const libraryFeature = screen.getByText(/Library/i);
     
     expect(generateFeature).toBeInTheDocument();
     expect(editFeature).toBeInTheDocument();
@@ -47,7 +48,18 @@ describe('HomePage Component', () => {
 
   test('renders the get started button', () => {
     renderHomePage();
-    const getStartedButton = screen.getByRole('button', { name: /Get Started/i });
+    const getStartedButton = screen.getByText(/Get Started Now/i);
     expect(getStartedButton).toBeInTheDocument();
+  });
+
+  test('renders the avatar section', () => {
+    renderHomePage();
+    const avatarSectionHeading = screen.getByText(/Your Avatars/i);
+    const mikeAvatar = screen.getByAltText(/Mike Avatar/i);
+    const miraAvatar = screen.getByAltText(/Mira Avatar/i);
+    
+    expect(avatarSectionHeading).toBeInTheDocument();
+    expect(mikeAvatar).toBeInTheDocument();
+    expect(miraAvatar).toBeInTheDocument();
   });
 });

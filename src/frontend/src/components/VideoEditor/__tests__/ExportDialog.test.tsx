@@ -1,7 +1,9 @@
+// @ts-nocheck
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
 import ExportDialog from '../ExportDialog';
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 
 // Mock the editorService
 jest.mock('../../../services/editor.service', () => ({
@@ -75,7 +77,7 @@ describe('ExportDialog Component', () => {
 
   test('renders the dialog when isOpen is true', () => {
     renderExportDialog(true);
-    const dialogTitle = screen.getByText(/Export Video/i);
+    const dialogTitle = screen.getByRole('heading', { name: /Export Video/i });
     expect(dialogTitle).toBeInTheDocument();
   });
 
@@ -87,9 +89,9 @@ describe('ExportDialog Component', () => {
 
   test('renders format options', () => {
     renderExportDialog();
-    const mp4Option = screen.getByText(/MP4/i);
-    const webmOption = screen.getByText(/WebM/i);
-    const movOption = screen.getByText(/QuickTime/i);
+    const mp4Option = screen.getByText('MP4');
+    const webmOption = screen.getByText('WebM');
+    const movOption = screen.getByText('QuickTime', { exact: true });
     
     expect(mp4Option).toBeInTheDocument();
     expect(webmOption).toBeInTheDocument();
@@ -98,9 +100,9 @@ describe('ExportDialog Component', () => {
 
   test('renders quality presets', () => {
     renderExportDialog();
-    const lowOption = screen.getByText(/Low/i);
-    const mediumOption = screen.getByText(/Medium/i);
-    const highOption = screen.getByText(/High/i);
+    const lowOption = screen.getByText('Low', { exact: true });
+    const mediumOption = screen.getByText('Medium', { exact: true });
+    const highOption = screen.getByText('High', { exact: true });
     
     expect(lowOption).toBeInTheDocument();
     expect(mediumOption).toBeInTheDocument();
