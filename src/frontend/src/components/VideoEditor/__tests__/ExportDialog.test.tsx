@@ -77,8 +77,13 @@ describe('ExportDialog Component', () => {
 
   test('renders the dialog when isOpen is true', () => {
     renderExportDialog(true);
-    const dialogTitle = screen.getByRole('heading', { name: /Export Video/i });
-    expect(dialogTitle).toBeInTheDocument();
+    // Use a more specific selector to find the modal header
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    
+    // Check that the dialog contains the text "Export Video"
+    const modalHeader = document.querySelector('.chakra-modal__header');
+    expect(modalHeader).toHaveTextContent(/Export Video/i);
   });
 
   test('does not render the dialog when isOpen is false', () => {

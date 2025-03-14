@@ -37,9 +37,10 @@ describe('HomePage Component', () => {
 
   test('renders the feature cards', () => {
     renderHomePage();
-    const generateFeature = screen.getByText(/Generate/i);
-    const editFeature = screen.getByText(/Edit/i);
-    const libraryFeature = screen.getByText(/Library/i);
+    // Use more specific selectors to find the headings within the card headers
+    const generateFeature = screen.getByRole('heading', { name: /Generate/i });
+    const editFeature = screen.getByRole('heading', { name: /Edit/i });
+    const libraryFeature = screen.getByRole('heading', { name: /Library/i });
     
     expect(generateFeature).toBeInTheDocument();
     expect(editFeature).toBeInTheDocument();

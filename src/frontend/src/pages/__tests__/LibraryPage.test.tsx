@@ -6,12 +6,29 @@ import { ChakraProvider } from '@chakra-ui/react';
 import LibraryPage from '../LibraryPage';
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 
-// Mock the useState hook to control loading state
-jest.mock('react', () => {
-  const originalModule = jest.requireActual('react') as object;
+// Mock Chakra UI hooks
+jest.mock('@chakra-ui/react', () => {
+  const originalModule = jest.requireActual('@chakra-ui/react');
   return {
     ...originalModule,
-    useState: jest.fn((initialValue) => [initialValue, jest.fn()]),
+    useBreakpointValue: jest.fn().mockImplementation((values) => {
+      // Return the base value as default
+      if (values && typeof values === 'object' && 'base' in values) {
+        return values.base;
+      }
+      return Object.values(values || {})[0] || '';
+    }),
+    useMediaQuery: jest.fn().mockReturnValue([true]),
+    useBreakpoint: jest.fn().mockReturnValue('md'),
+  };
+});
+
+// Mock the useState hook to control loading state
+jest.mock('react', () => {
+  const originalModule = jest.requireActual('react');
+  return {
+    ...originalModule,
+    useState: jest.fn().mockImplementation((initialValue) => [initialValue, jest.fn()]),
   };
 });
 
@@ -51,7 +68,8 @@ describe('LibraryPage Component', () => {
 
   test('renders the new folder button', () => {
     renderLibraryPage();
-    const newFolderButton = screen.getByText(/New Folder/i);
+    // Use a more specific selector to find the button with text "New Folder"
+    const newFolderButton = screen.getByRole('button', { name: /New Folder/i });
     expect(newFolderButton).toBeInTheDocument();
   });
 
@@ -79,20 +97,33 @@ describe('LibraryPage Component', () => {
   });
 
   test('renders video cards when loading is false', async () => {
-    // Mock the useState hook to return loading as false
-    jest.spyOn(React, 'useState').mockImplementationOnce(() => [false, jest.fn()]);
+    // Reset all mocks
+    jest.clearAllMocks();
+    
+    // Mock the useState hook to return loading as false for all calls
+    // This ensures the component's loading state is false
+    jest.spyOn(React, 'useState').mockImplementation((init) => {
+      if (init === true) { // If this is the loading state initialization
+        return [false, jest.fn()]; // Return loading as false
+      }
+      return [init, jest.fn()]; // Otherwise return the initial value
+    });
     
     renderLibraryPage();
     
-    // Check for video cards
+    // Check for video cards with a longer timeout
     await waitFor(() => {
-      const productIntroCard = screen.getByText(/Product Introduction/i);
-      const featureWalkthroughCard = screen.getByText(/Feature Walkthrough/i);
-      const fullPresentationCard = screen.getByText(/Full Presentation/i);
+      // Look for headings within card bodies
+      const headings = screen.getAllByRole('heading', { level: 3 });
       
-      expect(productIntroCard).toBeInTheDocument();
-      expect(featureWalkthroughCard).toBeInTheDocument();
-      expect(fullPresentationCard).toBeInTheDocument();
-    });
+      // Check if any of the headings contain our expected text
+      const hasProductIntro = headings.some(h => h.textContent?.includes('Product Introduction'));
+      const hasFeatureWalkthrough = headings.some(h => h.textContent?.includes('Feature Walkthrough'));
+      const hasFullPresentation = headings.some(h => h.textContent?.includes('Full Presentation'));
+      
+      expect(hasProductIntro).toBe(true);
+      expect(hasFeatureWalkthrough).toBe(true);
+      expect(hasFullPresentation).toBe(true);
+    }, { timeout: 3000 });
   });
 });

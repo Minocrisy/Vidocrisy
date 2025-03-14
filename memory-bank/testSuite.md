@@ -26,8 +26,8 @@ We will use a combination of testing methodologies:
 - Setup script created for installing testing dependencies and running tests
 - TypeScript configuration updated to enable esModuleInterop for testing
 - Jest and Babel configuration files created for ES module support
-- TypeScript errors in test files need to be resolved
-- Tests need to be run and issues fixed
+- Fixed test issues in LibraryPage, HomePage, ExportDialog, and VideoPlayer components
+- All tests are now passing successfully
 
 ### Configuration Changes
 - Updated tsconfig.json to enable esModuleInterop and allowSyntheticDefaultImports
@@ -37,8 +37,8 @@ We will use a combination of testing methodologies:
 - Modified setupTests.ts to work with TypeScript and ES modules
 
 ### Next Steps
-1. Fix TypeScript errors in test files
-2. Run the test suite and fix any issues
+1. ✅ Fix TypeScript errors in test files
+2. ✅ Run the test suite and fix any issues
 3. Implement additional test cases as outlined in the test plan
 4. Set up continuous integration for automated testing
 
@@ -193,7 +193,7 @@ We will use a combination of testing methodologies:
 - Set up TypeScript configuration for testing
 - Create setup scripts for test environment
 
-### Phase 2: Implement Unit Tests 🔄
+### Phase 2: Implement Unit Tests ✅
 - Implement unit tests for HomePage
 - Implement unit tests for GeneratorPage
 - Implement unit tests for EditorPage
@@ -265,7 +265,42 @@ We will use a combination of testing methodologies:
 - Focus on testing behavior, not implementation details
 - Use waitFor() for asynchronous operations
 
+### Chakra UI Component Testing
+- **Issue**: Chakra UI hooks like useBreakpointValue causing errors in tests
+- **Solution**:
+  - Mock Chakra UI hooks properly in test files
+  - Use more specific selectors for Chakra UI components
+  - Test for state changes rather than implementation details
+  - Use container queries to find elements when screen queries are ambiguous
+
+### Multiple Elements with Same Text
+- **Issue**: Finding multiple elements with the same text when using getByText
+- **Solution**:
+  - Use more specific selectors like getByRole with name option
+  - Use container queries to narrow down the search scope
+  - Use getAllByText and then filter the results if needed
+  - Add data-testid attributes as a last resort
+
 ## Conclusion
 This test suite provides a comprehensive approach to testing the Vidocrisy application. By implementing and executing these tests, we can ensure that the application meets all requirements, provides a good user experience, and performs well under various conditions.
 
-The current focus is on fixing TypeScript errors in test files, running the tests, and addressing any issues that arise. Once the basic test suite is working, we can expand it to include more comprehensive tests for all components and features.
+All tests are now passing successfully. The main issues that were fixed include:
+
+1. LibraryPage Component:
+   - Fixed issues with Chakra UI's useBreakpointValue hook by properly mocking it
+   - Used more specific selectors for buttons and other elements
+   - Improved the test for video cards with better state management
+
+2. VideoPlayer Component:
+   - Updated tests to check for state changes instead of callback functions
+   - Used container queries to find elements when needed
+
+3. ExportDialog Component:
+   - Fixed tests to handle multiple elements with the same text
+   - Used more specific selectors to find dialog elements
+
+4. HomePage Component:
+   - Used more specific selectors for feature cards
+   - Fixed tests to handle multiple elements with similar text
+
+The next steps are to implement additional test cases as outlined in the test plan and set up continuous integration for automated testing.
