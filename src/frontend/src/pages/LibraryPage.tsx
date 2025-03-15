@@ -19,7 +19,8 @@ import {
   Container,
   Tooltip,
   useBreakpointValue,
-  Skeleton
+  Skeleton,
+  VStack
 } from '@chakra-ui/react'
 import { Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/menu'
 import {
@@ -31,9 +32,17 @@ import {
   FiMoreVertical,
   FiPlus,
   FiFolder,
-  FiInfo
+  FiInfo,
+  FiWifi,
+  FiWifiOff
 } from 'react-icons/fi'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { 
+  useLazyLoad, 
+  useDebounce, 
+  useThrottle, 
+  useNetworkStatus 
+} from '../hooks/usePerformance'
 
 const LibraryPage = () => {
   // Responsive adjustments
@@ -43,6 +52,31 @@ const LibraryPage = () => {
   // Loading state
   const [loading, setLoading] = useState(true)
   
+  // Search state with debouncing
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filteredVideos, setFilteredVideos] = useState<any[]>([])
+  
+  // Network status monitoring
+  const { online, connectionType } = useNetworkStatus()
+  
+  // Lazy load for video thumbnails
+  const thumbnail1LazyLoad = useLazyLoad()
+  const thumbnail2LazyLoad = useLazyLoad()
+  const thumbnail3LazyLoad = useLazyLoad()
+  
+  // Debounced search function
+  const debouncedSearch = useDebounce((query: string) => {
+    console.log('Searching for:', query)
+    // In a real implementation, this would filter videos based on the query
+    // setFilteredVideos(videos.filter(video => video.title.toLowerCase().includes(query.toLowerCase())))
+  }, 300)
+  
+  // Throttled scroll handler for video list
+  const handleScroll = useThrottle((e: React.UIEvent<HTMLDivElement>) => {
+    console.log('Scroll position:', e.currentTarget.scrollTop)
+    // In a real implementation, this could load more videos when scrolling to the bottom
+  }, 200)
+  
   // Simulate loading
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -51,9 +85,28 @@ const LibraryPage = () => {
     
     return () => clearTimeout(timer)
   }, [])
+  
+  // Adapt UI based on network connection
+  useEffect(() => {
+    if (connectionType === '2g' || connectionType === 'slow-2g') {
+      // Reduce image quality or disable auto-loading features for slow connections
+      console.log('Slow connection detected, adapting UI...')
+    }
+  }, [connectionType])
 
   return (
     <Box className="fade-in">
+      {/* Network status banner */}
+      {!online && (
+        <Box bg="red.700" p={2} mb={4} borderRadius="md">
+          <Flex align="center" justify="center">
+            <FiWifiOff style={{ marginRight: '8px' }} />
+            <Text color="white" textAlign="center">
+              You are currently offline. Some features may not work properly.
+            </Text>
+          </Flex>
+        </Box>
+      )}
       <Container maxW="container.xl" px={{ base: 4, md: 6 }}>
         <Box mb={8} className="slide-in-up">
           <Heading as="h1" size={headingSize} mb={3} className="glow-text">
@@ -86,6 +139,11 @@ const LibraryPage = () => {
               _hover={{ borderColor: 'brand.400' }}
               _focus={{ borderColor: 'brand.500', boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)' }}
               transition="all 0.2s ease"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                debouncedSearch(e.target.value);
+              }}
             />
           </InputGroup>
 
@@ -150,354 +208,374 @@ const LibraryPage = () => {
           <Heading as="h2" size="md" mb={4} className="slide-in-right">
             Recent Videos
           </Heading>
-          <SimpleGrid columns={cardColumns} spacing={6}>
-            {loading ? (
-              // Loading skeletons
-              Array(4).fill(0).map((_, index) => (
-                <Card key={`skeleton-${index}`} bg="gray.800" overflow="hidden" className="stagger-item">
-                  <Skeleton height="160px" />
-                  <CardBody>
-                    <Skeleton height="20px" width="70%" mb={2} />
-                    <Skeleton height="15px" width="50%" mb={4} />
-                    <Flex justify="space-between">
-                      <Skeleton height="24px" width="80px" />
-                      <Skeleton height="24px" width="24px" borderRadius="full" />
-                    </Flex>
-                  </CardBody>
-                </Card>
-              ))
-            ) : (
-              <>
-                {/* Video Card 1 */}
-                <Card 
-                  bg="gray.800" 
-                  overflow="hidden" 
-                  className="stagger-item card-hover"
-                  _hover={{ transform: 'translateY(-5px)', boxShadow: 'xl' }}
-                  transition="all 0.3s ease"
-                >
-                  <Box position="relative">
-                    <Image
-                      src="/assets/images/Mike_Avatar.jpeg"
-                      alt="Video thumbnail"
-                      w="100%"
-                      h="160px"
-                      objectFit="cover"
-                    />
-                    <Flex
-                      position="absolute"
-                      top={0}
-                      left={0}
-                      right={0}
-                      bottom={0}
-                      bg="rgba(0,0,0,0.3)"
-                      justify="center"
-                      align="center"
-                      opacity={0}
-                      _hover={{ opacity: 1 }}
-                      transition="opacity 0.2s"
-                    >
-                      <IconButton
-                        aria-label="Play video"
-                        icon={<FiPlay />}
-                        colorScheme="brand"
-                        size="lg"
-                        isRound
-                      />
-                    </Flex>
-                    <Badge
-                      position="absolute"
-                      bottom={2}
-                      right={2}
-                      colorScheme="gray"
-                      bg="rgba(0,0,0,0.6)"
-                    >
-                      00:45
-                    </Badge>
-                  </Box>
-                  <CardBody>
-                    <Heading as="h3" size="sm" mb={1}>
-                      Product Introduction
-                    </Heading>
-                    <Text fontSize="xs" color="gray.400" mb={3}>
-                      Created with Hedra • 2 days ago
-                    </Text>
-                    <Flex justify="space-between">
-                      <HStack>
-                        <IconButton
-                          aria-label="Edit video"
-                          icon={<FiEdit />}
-                          variant="ghost"
-                          size="sm"
-                        />
-                        <IconButton
-                          aria-label="Download video"
-                          icon={<FiDownload />}
-                          variant="ghost"
-                          size="sm"
-                        />
-                      </HStack>
-                      <Menu>
-                        <MenuButton
-                          as={IconButton}
-                          aria-label="More options"
-                          icon={<FiMoreVertical />}
-                          variant="ghost"
-                          size="sm"
-                        />
-                        <MenuList bg="gray.800" borderColor="gray.700">
-                          <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
-                            Rename
-                          </MenuItem>
-                          <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
-                            Move to Folder
-                          </MenuItem>
-                          <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
-                            Duplicate
-                          </MenuItem>
-                          <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }} color="red.300">
-                            Delete
-                          </MenuItem>
-                        </MenuList>
-                      </Menu>
-                    </Flex>
-                  </CardBody>
-                </Card>
-
-                {/* Video Card 2 */}
-                <Card 
-                  bg="gray.800" 
-                  overflow="hidden"
-                  className="stagger-item card-hover"
-                  _hover={{ transform: 'translateY(-5px)', boxShadow: 'xl' }}
-                  transition="all 0.3s ease"
-                >
-                  <Box position="relative">
-                    <Image
-                      src="/assets/images/MIra_Avatar.jpeg"
-                      alt="Video thumbnail"
-                      w="100%"
-                      h="160px"
-                      objectFit="cover"
-                    />
-                    <Flex
-                      position="absolute"
-                      top={0}
-                      left={0}
-                      right={0}
-                      bottom={0}
-                      bg="rgba(0,0,0,0.3)"
-                      justify="center"
-                      align="center"
-                      opacity={0}
-                      _hover={{ opacity: 1 }}
-                      transition="opacity 0.2s"
-                    >
-                      <IconButton
-                        aria-label="Play video"
-                        icon={<FiPlay />}
-                        colorScheme="brand"
-                        size="lg"
-                        isRound
-                      />
-                    </Flex>
-                    <Badge
-                      position="absolute"
-                      bottom={2}
-                      right={2}
-                      colorScheme="gray"
-                      bg="rgba(0,0,0,0.6)"
-                    >
-                      01:20
-                    </Badge>
-                  </Box>
-                  <CardBody>
-                    <Heading as="h3" size="sm" mb={1}>
-                      Feature Walkthrough
-                    </Heading>
-                    <Text fontSize="xs" color="gray.400" mb={3}>
-                      Created with Hedra • 3 days ago
-                    </Text>
-                    <Flex justify="space-between">
-                      <HStack>
-                        <IconButton
-                          aria-label="Edit video"
-                          icon={<FiEdit />}
-                          variant="ghost"
-                          size="sm"
-                        />
-                        <IconButton
-                          aria-label="Download video"
-                          icon={<FiDownload />}
-                          variant="ghost"
-                          size="sm"
-                        />
-                      </HStack>
-                      <Menu>
-                        <MenuButton
-                          as={IconButton}
-                          aria-label="More options"
-                          icon={<FiMoreVertical />}
-                          variant="ghost"
-                          size="sm"
-                        />
-                        <MenuList bg="gray.800" borderColor="gray.700">
-                          <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
-                            Rename
-                          </MenuItem>
-                          <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
-                            Move to Folder
-                          </MenuItem>
-                          <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
-                            Duplicate
-                          </MenuItem>
-                          <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }} color="red.300">
-                            Delete
-                          </MenuItem>
-                        </MenuList>
-                      </Menu>
-                    </Flex>
-                  </CardBody>
-                </Card>
-
-                {/* Video Card 3 */}
-                <Card 
-                  bg="gray.800" 
-                  overflow="hidden"
-                  className="stagger-item card-hover"
-                  _hover={{ transform: 'translateY(-5px)', boxShadow: 'xl' }}
-                  transition="all 0.3s ease"
-                >
-                  <Box position="relative">
-                    <Box
-                      bg="gray.700"
-                      w="100%"
-                      h="160px"
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="center"
-                    >
-                      <Text color="gray.500">Combined Video</Text>
-                    </Box>
-                    <Flex
-                      position="absolute"
-                      top={0}
-                      left={0}
-                      right={0}
-                      bottom={0}
-                      bg="rgba(0,0,0,0.3)"
-                      justify="center"
-                      align="center"
-                      opacity={0}
-                      _hover={{ opacity: 1 }}
-                      transition="opacity 0.2s"
-                    >
-                      <IconButton
-                        aria-label="Play video"
-                        icon={<FiPlay />}
-                        colorScheme="brand"
-                        size="lg"
-                        isRound
-                      />
-                    </Flex>
-                    <Badge
-                      position="absolute"
-                      bottom={2}
-                      right={2}
-                      colorScheme="gray"
-                      bg="rgba(0,0,0,0.6)"
-                    >
-                      02:30
-                    </Badge>
-                  </Box>
-                  <CardBody>
-                    <Heading as="h3" size="sm" mb={1}>
-                      Full Presentation
-                    </Heading>
-                    <Text fontSize="xs" color="gray.400" mb={3}>
-                      Edited • 1 day ago
-                    </Text>
-                    <Flex justify="space-between">
-                      <HStack>
-                        <IconButton
-                          aria-label="Edit video"
-                          icon={<FiEdit />}
-                          variant="ghost"
-                          size="sm"
-                        />
-                        <IconButton
-                          aria-label="Download video"
-                          icon={<FiDownload />}
-                          variant="ghost"
-                          size="sm"
-                        />
-                      </HStack>
-                      <Menu>
-                        <MenuButton
-                          as={IconButton}
-                          aria-label="More options"
-                          icon={<FiMoreVertical />}
-                          variant="ghost"
-                          size="sm"
-                        />
-                        <MenuList bg="gray.800" borderColor="gray.700">
-                          <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
-                            Rename
-                          </MenuItem>
-                          <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
-                            Move to Folder
-                          </MenuItem>
-                          <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
-                            Duplicate
-                          </MenuItem>
-                          <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }} color="red.300">
-                            Delete
-                          </MenuItem>
-                        </MenuList>
-                      </Menu>
-                    </Flex>
-                  </CardBody>
-                </Card>
-
-                {/* Add New Video Card */}
-                <Card 
-                  bg="gray.800" 
-                  overflow="hidden" 
-                  borderStyle="dashed" 
-                  borderWidth="2px" 
-                  borderColor="gray.600"
-                  _hover={{ borderColor: 'brand.500', transform: 'translateY(-5px)', boxShadow: 'xl' }}
-                  cursor="pointer"
-                  className="stagger-item"
-                  transition="all 0.3s ease"
-                >
-                  <Flex 
-                    direction="column" 
-                    justify="center" 
-                    align="center" 
-                    h="100%" 
-                    p={6}
+          <Box 
+            maxHeight="600px" 
+            overflowY="auto"
+            onScroll={handleScroll}
+          >
+            <SimpleGrid columns={cardColumns} spacing={6}>
+              {loading ? (
+                // Loading skeletons
+                Array(4).fill(0).map((_, index) => (
+                  <Card key={`skeleton-${index}`} bg="gray.800" overflow="hidden" className="stagger-item">
+                    <Skeleton height="160px" />
+                    <CardBody>
+                      <Skeleton height="20px" width="70%" mb={2} />
+                      <Skeleton height="15px" width="50%" mb={4} />
+                      <Flex justify="space-between">
+                        <Skeleton height="24px" width="80px" />
+                        <Skeleton height="24px" width="24px" borderRadius="full" />
+                      </Flex>
+                    </CardBody>
+                  </Card>
+                ))
+              ) : (
+                <>
+                  {/* Video Card 1 */}
+                  <Card 
+                    bg="gray.800" 
+                    overflow="hidden" 
+                    className="stagger-item card-hover"
+                    _hover={{ transform: 'translateY(-5px)', boxShadow: 'xl' }}
+                    transition="all 0.3s ease"
                   >
-                    <Box 
-                      bg="gray.700" 
-                      borderRadius="full" 
-                      p={4} 
-                      mb={4}
-                      className="pulse"
-                    >
-                      <FiPlus size={24} />
+                    <Box position="relative" ref={thumbnail1LazyLoad.ref as React.RefObject<HTMLDivElement>}>
+                      {thumbnail1LazyLoad.isVisible ? (
+                        <Image
+                          src="/assets/images/Mike_Avatar.jpeg"
+                          alt="Video thumbnail"
+                          w="100%"
+                          h="160px"
+                          objectFit="cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <Skeleton height="160px" />
+                      )}
+                      <Flex
+                        position="absolute"
+                        top={0}
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        bg="rgba(0,0,0,0.3)"
+                        justify="center"
+                        align="center"
+                        opacity={0}
+                        _hover={{ opacity: 1 }}
+                        transition="opacity 0.2s"
+                      >
+                        <IconButton
+                          aria-label="Play video"
+                          icon={<FiPlay />}
+                          colorScheme="brand"
+                          size="lg"
+                          isRound
+                        />
+                      </Flex>
+                      <Badge
+                        position="absolute"
+                        bottom={2}
+                        right={2}
+                        colorScheme="gray"
+                        bg="rgba(0,0,0,0.6)"
+                      >
+                        00:45
+                      </Badge>
                     </Box>
-                    <Heading as="h3" size="sm" mb={2}>
-                      Create New Video
-                    </Heading>
-                    <Text fontSize="sm" textAlign="center">
-                      Generate a new video or upload existing content
-                    </Text>
-                  </Flex>
-                </Card>
-              </>
-            )}
-          </SimpleGrid>
+                    <CardBody>
+                      <Heading as="h3" size="sm" mb={1}>
+                        Product Introduction
+                      </Heading>
+                      <Text fontSize="xs" color="gray.400" mb={3}>
+                        Created with Hedra • 2 days ago
+                      </Text>
+                      <Flex justify="space-between">
+                        <HStack>
+                          <IconButton
+                            aria-label="Edit video"
+                            icon={<FiEdit />}
+                            variant="ghost"
+                            size="sm"
+                          />
+                          <IconButton
+                            aria-label="Download video"
+                            icon={<FiDownload />}
+                            variant="ghost"
+                            size="sm"
+                          />
+                        </HStack>
+                        <Menu>
+                          <MenuButton
+                            as={IconButton}
+                            aria-label="More options"
+                            icon={<FiMoreVertical />}
+                            variant="ghost"
+                            size="sm"
+                          />
+                          <MenuList bg="gray.800" borderColor="gray.700">
+                            <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
+                              Rename
+                            </MenuItem>
+                            <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
+                              Move to Folder
+                            </MenuItem>
+                            <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
+                              Duplicate
+                            </MenuItem>
+                            <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }} color="red.300">
+                              Delete
+                            </MenuItem>
+                          </MenuList>
+                        </Menu>
+                      </Flex>
+                    </CardBody>
+                  </Card>
+
+                  {/* Video Card 2 */}
+                  <Card 
+                    bg="gray.800" 
+                    overflow="hidden"
+                    className="stagger-item card-hover"
+                    _hover={{ transform: 'translateY(-5px)', boxShadow: 'xl' }}
+                    transition="all 0.3s ease"
+                  >
+                    <Box position="relative" ref={thumbnail2LazyLoad.ref as React.RefObject<HTMLDivElement>}>
+                      {thumbnail2LazyLoad.isVisible ? (
+                        <Image
+                          src="/assets/images/MIra_Avatar.jpeg"
+                          alt="Video thumbnail"
+                          w="100%"
+                          h="160px"
+                          objectFit="cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <Skeleton height="160px" />
+                      )}
+                      <Flex
+                        position="absolute"
+                        top={0}
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        bg="rgba(0,0,0,0.3)"
+                        justify="center"
+                        align="center"
+                        opacity={0}
+                        _hover={{ opacity: 1 }}
+                        transition="opacity 0.2s"
+                      >
+                        <IconButton
+                          aria-label="Play video"
+                          icon={<FiPlay />}
+                          colorScheme="brand"
+                          size="lg"
+                          isRound
+                        />
+                      </Flex>
+                      <Badge
+                        position="absolute"
+                        bottom={2}
+                        right={2}
+                        colorScheme="gray"
+                        bg="rgba(0,0,0,0.6)"
+                      >
+                        01:20
+                      </Badge>
+                    </Box>
+                    <CardBody>
+                      <Heading as="h3" size="sm" mb={1}>
+                        Feature Walkthrough
+                      </Heading>
+                      <Text fontSize="xs" color="gray.400" mb={3}>
+                        Created with Hedra • 3 days ago
+                      </Text>
+                      <Flex justify="space-between">
+                        <HStack>
+                          <IconButton
+                            aria-label="Edit video"
+                            icon={<FiEdit />}
+                            variant="ghost"
+                            size="sm"
+                          />
+                          <IconButton
+                            aria-label="Download video"
+                            icon={<FiDownload />}
+                            variant="ghost"
+                            size="sm"
+                          />
+                        </HStack>
+                        <Menu>
+                          <MenuButton
+                            as={IconButton}
+                            aria-label="More options"
+                            icon={<FiMoreVertical />}
+                            variant="ghost"
+                            size="sm"
+                          />
+                          <MenuList bg="gray.800" borderColor="gray.700">
+                            <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
+                              Rename
+                            </MenuItem>
+                            <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
+                              Move to Folder
+                            </MenuItem>
+                            <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
+                              Duplicate
+                            </MenuItem>
+                            <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }} color="red.300">
+                              Delete
+                            </MenuItem>
+                          </MenuList>
+                        </Menu>
+                      </Flex>
+                    </CardBody>
+                  </Card>
+
+                  {/* Video Card 3 */}
+                  <Card 
+                    bg="gray.800" 
+                    overflow="hidden"
+                    className="stagger-item card-hover"
+                    _hover={{ transform: 'translateY(-5px)', boxShadow: 'xl' }}
+                    transition="all 0.3s ease"
+                  >
+                    <Box position="relative" ref={thumbnail3LazyLoad.ref as React.RefObject<HTMLDivElement>}>
+                      {thumbnail3LazyLoad.isVisible ? (
+                        <Box
+                          bg="gray.700"
+                          w="100%"
+                          h="160px"
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          <Text color="gray.500">Combined Video</Text>
+                        </Box>
+                      ) : (
+                        <Skeleton height="160px" />
+                      )}
+                      <Flex
+                        position="absolute"
+                        top={0}
+                        left={0}
+                        right={0}
+                        bottom={0}
+                        bg="rgba(0,0,0,0.3)"
+                        justify="center"
+                        align="center"
+                        opacity={0}
+                        _hover={{ opacity: 1 }}
+                        transition="opacity 0.2s"
+                      >
+                        <IconButton
+                          aria-label="Play video"
+                          icon={<FiPlay />}
+                          colorScheme="brand"
+                          size="lg"
+                          isRound
+                        />
+                      </Flex>
+                      <Badge
+                        position="absolute"
+                        bottom={2}
+                        right={2}
+                        colorScheme="gray"
+                        bg="rgba(0,0,0,0.6)"
+                      >
+                        02:30
+                      </Badge>
+                    </Box>
+                    <CardBody>
+                      <Heading as="h3" size="sm" mb={1}>
+                        Full Presentation
+                      </Heading>
+                      <Text fontSize="xs" color="gray.400" mb={3}>
+                        Edited • 1 day ago
+                      </Text>
+                      <Flex justify="space-between">
+                        <HStack>
+                          <IconButton
+                            aria-label="Edit video"
+                            icon={<FiEdit />}
+                            variant="ghost"
+                            size="sm"
+                          />
+                          <IconButton
+                            aria-label="Download video"
+                            icon={<FiDownload />}
+                            variant="ghost"
+                            size="sm"
+                          />
+                        </HStack>
+                        <Menu>
+                          <MenuButton
+                            as={IconButton}
+                            aria-label="More options"
+                            icon={<FiMoreVertical />}
+                            variant="ghost"
+                            size="sm"
+                          />
+                          <MenuList bg="gray.800" borderColor="gray.700">
+                            <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
+                              Rename
+                            </MenuItem>
+                            <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
+                              Move to Folder
+                            </MenuItem>
+                            <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }}>
+                              Duplicate
+                            </MenuItem>
+                            <MenuItem bg="gray.800" _hover={{ bg: 'gray.700' }} color="red.300">
+                              Delete
+                            </MenuItem>
+                          </MenuList>
+                        </Menu>
+                      </Flex>
+                    </CardBody>
+                  </Card>
+
+                  {/* Add New Video Card */}
+                  <Card 
+                    bg="gray.800" 
+                    overflow="hidden" 
+                    borderStyle="dashed" 
+                    borderWidth="2px" 
+                    borderColor="gray.600"
+                    _hover={{ borderColor: 'brand.500', transform: 'translateY(-5px)', boxShadow: 'xl' }}
+                    cursor="pointer"
+                    className="stagger-item"
+                    transition="all 0.3s ease"
+                  >
+                    <Flex 
+                      direction="column" 
+                      justify="center" 
+                      align="center" 
+                      h="100%" 
+                      p={6}
+                    >
+                      <Box 
+                        bg="gray.700" 
+                        borderRadius="full" 
+                        p={4} 
+                        mb={4}
+                        className="pulse"
+                      >
+                        <FiPlus size={24} />
+                      </Box>
+                      <Heading as="h3" size="sm" mb={2}>
+                        Create New Video
+                      </Heading>
+                      <Text fontSize="sm" textAlign="center">
+                        Generate a new video or upload existing content
+                      </Text>
+                    </Flex>
+                  </Card>
+                </>
+              )}
+            </SimpleGrid>
+          </Box>
         </Box>
 
         <Divider mb={8} />

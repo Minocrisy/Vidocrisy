@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -110,6 +110,9 @@ const TimelineItemComponent = React.memo(({
   selectItem: (index: number) => void;
   isSelected: boolean;
 }) => {
+  // Use memoized formatTime function for better performance
+  const formattedStartTime = useMemo(() => formatTime(item.startTime), [item.startTime]);
+  const formattedEndTime = useMemo(() => formatTime(item.endTime), [item.endTime]);
   const ref = useRef<HTMLDivElement>(null);
   
   const [{ isDragging }, drag] = useDrag({
@@ -182,22 +185,32 @@ const TimelineItemComponent = React.memo(({
     removeItem(index);
   }, [index, removeItem]);
   
+  // Memoize the click handler to prevent unnecessary re-renders
+  const handleClick = useCallback(() => {
+    selectItem(index);
+  }, [index, selectItem]);
+  
+  // Memoize the box style for better performance
+  const boxStyle = useMemo(() => ({
+    opacity,
+    cursor: 'move',
+    borderWidth: '2px',
+    borderColor: isSelected ? "brand.500" : "gray.600",
+    borderRadius: "md",
+    bg: item.type === 'video' ? "gray.700" : "purple.800",
+    p: 2,
+    mr: 1,
+    minWidth: item.type === 'video' ? "200px" : "50px",
+    height: "80px",
+    position: "relative" as "relative",
+    _hover: { borderColor: "brand.400" }
+  }), [opacity, isSelected, item.type]);
+  
   return (
     <Box
       ref={ref}
-      opacity={opacity}
-      cursor="move"
-      borderWidth="2px"
-      borderColor={isSelected ? "brand.500" : "gray.600"}
-      borderRadius="md"
-      bg={item.type === 'video' ? "gray.700" : "purple.800"}
-      p={2}
-      mr={1}
-      minWidth={item.type === 'video' ? "200px" : "50px"}
-      height="80px"
-      position="relative"
-      onClick={() => selectItem(index)}
-      _hover={{ borderColor: "brand.400" }}
+      {...boxStyle}
+      onClick={handleClick}
     >
       {item.type === 'video' ? (
         <>
@@ -693,8 +706,24 @@ const VideoEditor = () => {
     });
   }, [toast]);
 
-  // Memoized rendering of timeline items
-  const renderTimelineItems = useMemoize(() => {
+  // Memoize expensive video processing calculations
+  const calculateTotalDuration = useMemo(() => {
+    return timelineItems.reduce((total, item) => {
+      return total + item.duration;
+    }, 0);
+  }, [timelineItems]);
+  
+  // Memoize video metadata for the timeline
+  const videoMetadataMap = useMemo(() => {
+    const map = new Map();
+    videos.forEach(video => {
+      map.set(video.id, video);
+    });
+    return map;
+  }, [videos]);
+  
+  // Memoized rendering of timeline items using useMemo for better React integration
+  const renderTimelineItems = useMemo(() => {
     if (timelineItems.length === 0) {
       return (
         <Flex
@@ -777,9 +806,14 @@ const VideoEditor = () => {
                   )}
                 </Box>
 
-                <Heading as="h3" size="md" mb={4}>
-                  Timeline
-                </Heading>
+                <Flex justify="space-between" align="center" mb={4}>
+                  <Heading as="h3" size="md">
+                    Timeline
+                  </Heading>
+                  <Text fontSize="sm">
+                    Total Duration: {formatTime(calculateTotalDuration as number)}
+                  </Text>
+                </Flex>
                 <Box
                   bg="gray.700"
                   p={4}
@@ -788,7 +822,7 @@ const VideoEditor = () => {
                   overflowX="auto"
                 >
                   <Flex minWidth="800px">
-                    {renderTimelineItems()}
+                    {renderTimelineItems}
                   </Flex>
                 </Box>
 
